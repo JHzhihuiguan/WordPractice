@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>和Jane一起学英语</title>
+  <!-- 引入Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#4F46E5', // 主色调：深紫蓝色
+            secondary: '#6B7280', // 次要文字色：中灰色
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .link-item {
+        @apply flex items-center justify-between py-4 px-5 transition-all duration-200 rounded-lg;
+      }
+      .link-item:hover {
+        @apply bg-primary/5;
+      }
+      .divider {
+        @apply h-px bg-gray-100 mx-5;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans">
+  <!-- 链接列表 -->
+  <main class="max-w-md mx-auto bg-white shadow-sm min-h-screen">
+    <div id="linkList" class="pt-2">
+      <!-- 链接项将通过JavaScript动态生成 -->
+    </div>
+  </main>
+
+  <script>
+    // 带图标的URL数组
+    const urls = [
+      { name: "Day1Day2", url: "Day1Day2/index.html", icon: "fa-book" }
+    ];
+
+    // 渲染链接列表
+    function renderLinks() {
+      const linkList = document.getElementById('linkList');
+      linkList.innerHTML = '';
+
+      urls.forEach((link, index) => {
+        // 创建链接项
+        const linkItem = document.createElement('a');
+        linkItem.href = link.url;
+        linkItem.className = 'link-item';
+        
+        linkItem.innerHTML = `
+          <div class="flex items-center">
+            <i class="fa ${link.icon || 'fa-link'} text-primary mr-4 text-lg"></i>
+            <span class="text-gray-800 font-medium">${link.name}</span>
+          </div>
+          <i class="fa fa-chevron-right text-gray-300 text-xs"></i>
+        `;
+        
+        linkList.appendChild(linkItem);
+        
+        // 添加分割线（最后一项不添加）
+        if (index !== urls.length - 1) {
+          const divider = document.createElement('div');
+          divider.className = 'divider';
+          linkList.appendChild(divider);
+        }
+      });
+    }
+
+    // 页面加载完成后渲染
+    document.addEventListener('DOMContentLoaded', renderLinks);
+  </script>
+</body>
+</html>

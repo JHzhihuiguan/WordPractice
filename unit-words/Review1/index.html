@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/ptt/favicon.jpg" type="image/jpeg">
+    <title>Review1</title>
+    <!-- 引入Font Awesome用于返回图标 -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 10px;
+            background-color: #f5f5f5;
+            padding-top: 50px; /* 调整顶部内边距，适配40px高的标题栏 */
+        }
+        /* 顶部标题/播放栏：固定显示，平时标题，播放时切换 */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            line-height: 40px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+            padding: 0 15px;
+            display: flex;
+            align-items: center;
+        }
+        /* 返回图标样式 */
+        .back-icon {
+            margin-right: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+        .back-icon:hover {
+            transform: scale(1.1);
+        }
+        /* 标题文本容器：占满剩余空间，居中显示 */
+        .bar-text {
+            flex: 1;
+            text-align: center;
+            font-weight: 500;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .image-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 默认一行两张 */
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        .image-item {
+            background-color: white;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .image-item:hover {
+            transform: scale(1.02);
+        }
+        .image-item img {
+            width: 90%;
+            object-fit: contain;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .image-item p {
+            color: #333;
+            font-size: 16px;
+        }
+        .nav-buttons {
+            text-align: center;
+            gap: 20px;
+        }
+        .nav-btn {
+            padding: 10px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 5px 20px 0px 20px;
+        }
+        .nav-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            display: none; /* 禁用时隐藏 */
+        }
+        .nav-btn:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+
+        /* 响应式调整：仅在极小屏幕（如360px以下）才改为单列 */
+        @media (max-width: 360px) {
+            .image-group {
+                grid-template-columns: 1fr; /* 超小屏幕才单列 */
+            }
+            .image-item img {
+                height: 180px; /* 超小屏幕图片高度减小 */
+            }
+            .top-bar {
+                font-size: 14px;
+            }
+        }
+
+        /* 中等屏幕（平板）可保持或增加列数 */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .image-group {
+                grid-template-columns: repeat(2, 1fr); /* 平板也保持两行 */
+            }
+        }
+
+        /* 大屏幕（桌面）可显示更多列 */
+        @media (min-width: 1025px) {
+            .image-group {
+                grid-template-columns: repeat(3, 1fr); /* 桌面可显示三列 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部栏：包含返回图标 + 标题/播放状态文本 -->
+    <div id="topBar" class="top-bar">
+        <i class="fa fa-arrow-left back-icon" id="backBtn"></i>
+        <div class="bar-text" id="barContent">Review1</div>
+    </div>
+    
+    <div class="container">
+        <div id="imageContainer" class="image-group">
+            <!-- 图片将通过JS动态加载 -->
+        </div>
+        <div class="nav-buttons">
+            <button id="prevBtn" class="nav-btn" disabled>上一页</button>
+            <button id="nextBtn" class="nav-btn">下一页</button>
+        </div>
+    </div>
+
+    <script>
+        // 图片和音频URL数组（保持不变）
+        const imageUrls = [
+            "images/bl.png", "images/cl.png", "images/fl.png", "images/gl.png",
+            "images/br.png", "images/cr.png", "images/fr.png", "images/pl.png",
+            "images/sl.png", "images/dr.png", "images/tr.png", "images/gr.png", "images/pr.png"
+        ];
+
+        const audioUrls = [
+            "audios/bl.mp3", "audios/cl.mp3", "audios/fl.mp3", "audios/gl.mp3",
+            "audios/br.mp3", "audios/cr.mp3", "audios/fr.mp3", "audios/pl.mp3",
+            "audios/sl.mp3", "audios/dr.mp3", "audios/tr.mp3", "audios/gr.mp3", "audios/pr.mp3"
+        ];
+
+        let currentPage = 0;
+        const itemsPerPage = 4;
+        const totalPages = Math.ceil(imageUrls.length / itemsPerPage);
+        let currentAudio = null;
+        const imageContainer = document.getElementById('imageContainer');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const topBar = document.getElementById('topBar');
+        const barContent = document.getElementById('barContent');
+        const backBtn = document.getElementById('backBtn');
+        // 存储原始页面标题，用于播放结束后恢复
+        const originalTitle = "Review1";
+
+        // 返回图标点击事件：浏览器后退（不是本页分页的上一页）
+        backBtn.addEventListener('click', () => {
+            window.history.back();
+        });
+
+        // 加载当前页图片（逻辑保持不变）
+        function loadCurrentPage() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                // 恢复原始标题
+                barContent.textContent = originalTitle;
+            }
+
+            imageContainer.innerHTML = '';
+            const startIndex = currentPage * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, imageUrls.length);
+
+            for (let i = startIndex; i < endIndex; i++) {
+                const imageItem = document.createElement('div');
+                imageItem.className = 'image-item';
+                
+                const img = document.createElement('img');
+                img.src = imageUrls[i];
+                img.alt = `图片${i+1}`;
+                
+                const caption = document.createElement('p');
+                caption.textContent = `点击播放音频 ${i+1}`;
+                
+                imageItem.appendChild(img);
+                imageItem.appendChild(caption);
+                
+                imageItem.addEventListener('click', () => {
+                    const audioIndex = i + 1;
+                    
+                    if (currentAudio && !currentAudio.paused && currentAudio.dataset.index == audioIndex) {
+                        currentAudio.pause();
+                        currentAudio.currentTime = 0;
+                        // 暂停时恢复原始标题
+                        barContent.textContent = originalTitle;
+                        return;
+                    }
+
+                    if (currentAudio) {
+                        currentAudio.pause();
+                        currentAudio.currentTime = 0;
+                    }
+                    
+                    currentAudio = new Audio(audioUrls[i]);
+                    currentAudio.dataset.index = audioIndex;
+                    
+                    currentAudio.play().then(() => {
+                        // 播放时显示播放状态
+                        barContent.textContent = `正在播放：音频 ${audioIndex}`;
+                    }).catch(err => {
+                        console.error('播放失败:', err);
+                        alert('音频播放失败，请检查URL是否有效或浏览器权限设置');
+                        // 播放失败时保持原始标题
+                        barContent.textContent = originalTitle;
+                    });
+
+                    currentAudio.addEventListener('ended', () => {
+                        // 音频播放结束，恢复原始标题
+                        barContent.textContent = originalTitle;
+                    });
+                });
+                
+                imageContainer.appendChild(imageItem);
+            }
+
+            prevBtn.disabled = currentPage === 0;
+            nextBtn.disabled = currentPage === totalPages - 1;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 0) {
+                currentPage--;
+                loadCurrentPage();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                loadCurrentPage();
+            }
+        });
+
+        loadCurrentPage();
+    </script>
+</body>
+</html>
