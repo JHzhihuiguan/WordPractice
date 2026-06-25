@@ -1,0 +1,1625 @@
+<!doctype html>
+<html lang="zh-CN">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>海底总动员 · Unit 5 Water is life</title>
+  <script src="https://static.zxxk.com/h5/static/7a614b9a197e532c00d09a23b0996b5f.js"></script>
+  <style>
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin:0; padding:0; width:100vw; height:100vh; overflow:hidden; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif; color:#003a5a; user-select:none; -webkit-user-select:none; touch-action:none; }
+:root { --game-topbar-h: 64px; --theme-accent:#ff7b54; --theme-card:#e0f4ff; --theme-stem:#c8e8f8; --theme-text:#003a5a; --card-radius:18px; --stem-alpha:0.95; --card-alpha:0.96; --mid-alpha:0.85; --mid-scale:1; }
+#app { width:100vw; height:100vh; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+.bg-stage { background-image: url('https://img.zxxk.com/aed/ai/upload/20260620/3bd21201b3554e59a085ab2408973cc3.png'); background-position: center bottom; background-size: cover; background-repeat: no-repeat; position:relative; }
+.bg-stage::before { content:""; position:absolute; inset:0; background:linear-gradient(180deg,#06b9dc 0%,#0277b8 50%,#005580 100%); opacity:.55; z-index:0; pointer-events:none; }
+.bg-stage::after { content:""; position:absolute; inset:0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); z-index:1; pointer-events:none; }
+#dynamicBgCanvas { position:absolute; inset:0; z-index:2; pointer-events:none; display:none; }
+#gameTopBar { flex: 0 0 auto; background: linear-gradient(180deg,#0288d1,#01579b); box-shadow: 0 8px 22px rgba(0,0,0,.2); padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; position: relative; z-index: 50; }
+#gameTopBar h1 { color:#fff; font-weight:900; font-size: 20px; letter-spacing: 2px; text-shadow: 0 3px 0 rgba(0,0,0,.32); margin: 0; }
+#gameTopBar .sub-info { color: rgba(255,255,255,.85); font-size: 11px; font-weight: 700; margin-top: 2px; }
+#gameTopBar button { background: rgba(255,255,255,.22); border: 1px solid rgba(255,255,255,.58); color: #fff; border-radius: 18px; padding: 6px 14px; font-weight: 700; font-size: 13px; cursor: pointer; }
+.status-badge { background: rgba(255,255,255,.22); border: 1px solid rgba(255,255,255,.58); color: #fff; border-radius: 18px; padding: 6px 14px; font-weight: 800; font-size: 13px; }
+.status-badge .val { color: #ffffff; font-size: 15px; text-shadow: 0 1px 3px rgba(0,0,0,.45); }
+#gameStage { flex: 1 1 auto; position: relative; width: 100%; min-height: 0; overflow: hidden; z-index:3; }
+#growthLayer { position:absolute; left:50%; transform:translateX(-50%); bottom:18px; width: min(640px, 86vw); height: auto; z-index: 10; pointer-events:none; opacity: var(--mid-alpha); transition: opacity .4s ease; }
+.theme-progress-bar { width:100%; --track-color:#eee; --fill-gradient:#81c784; }
+.theme-progress-bar .tpb-track { position:relative; width:100%; height:22px; border-radius:9999px; background:var(--track-color); box-shadow: inset 0 1px 3px rgba(0,0,0,.18), 0 4px 14px rgba(0,0,0,.18); }
+.theme-progress-bar .tpb-fill { height:100%; border-radius:9999px; background:var(--fill-gradient); transition: width .6s cubic-bezier(.4,1.4,.6,1); position:relative; }
+.theme-progress-bar .tpb-emoji { position:absolute; top:50%; transform:translate(-50%,-50%); font-size:26px; transition: left .6s cubic-bezier(.4,1.4,.6,1); pointer-events:none; z-index:2; filter: drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+.theme-progress-bar .tpb-label { font-size:13px; font-weight:900; color:#fff; margin-top:6px; text-align:center; letter-spacing:1px; text-shadow:0 2px 4px rgba(0,0,0,.45); }
+.tpb-effect-shimmer .tpb-fill { background-image: var(--fill-gradient), linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent); background-size: 100% 100%, 60px 100%; background-repeat: no-repeat, repeat-x; animation: tpbShimmer 2s linear infinite; }
+@keyframes tpbShimmer { 0%{background-position: 0 0, -60px 0;} 100%{background-position: 0 0, 100% 0;} }
+.tpb-effect-bump .tpb-emoji { animation: tpbBump 1s ease-in-out infinite; }
+@keyframes tpbBump { 0%,100%{transform:translate(-50%,-50%);} 50%{transform:translate(-50%,-65%);} }
+.tpb-effect-ink-blur .tpb-fill { filter: none; border-radius: 9999px; animation: none; }
+@keyframes tpbInkSpread { 0%,100%{border-radius:9999px;} 50%{border-radius:9999px;} }
+.tpb-effect-neon-scan .tpb-fill { box-shadow: 0 0 10px #00e5ff, 0 0 18px #00bcd4; position:relative; overflow:hidden; }
+.tpb-effect-neon-scan .tpb-fill::after { content:''; position:absolute; inset:0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent); animation: tpbScan 1.6s linear infinite; }
+@keyframes tpbScan { 0%{transform:translateX(-100%);} 100%{transform:translateX(100%);} }
+.tpb-effect-gold-sparkle .tpb-track::before, .tpb-effect-gold-sparkle .tpb-track::after { content:'✨'; position:absolute; top:-6px; font-size:14px; animation: tpbSparkle 1.4s ease-in-out infinite; }
+.tpb-effect-gold-sparkle .tpb-track::before { left:20%; }
+.tpb-effect-gold-sparkle .tpb-track::after { right:20%; animation-delay:.7s; }
+@keyframes tpbSparkle { 0%,100%{opacity:.3; transform:translateY(0);} 50%{opacity:1; transform:translateY(-4px);} }
+.tpb-effect-bubble-float .tpb-emoji { animation: tpbBubble 2.2s ease-in-out infinite; }
+@keyframes tpbBubble { 0%,100%{transform:translate(-50%,-50%);} 50%{transform:translate(-50%,-72%);} }
+.tpb-effect-confetti[data-percent="100"] .tpb-track::before { content:'🎊'; position:absolute; left:30%; top:-20px; animation: tpbConfetti 1.2s ease-in-out infinite; }
+.tpb-effect-confetti[data-percent="100"] .tpb-track::after { content:'🎉'; position:absolute; left:65%; top:-20px; animation: tpbConfetti 1.2s ease-in-out .25s infinite; }
+@keyframes tpbConfetti { 0%{opacity:0; transform:translate(-50%,-10px);} 50%{opacity:1;} 100%{opacity:0; transform:translate(-50%,14px);} }
+.tpb-effect-pulse[data-percent="100"] .tpb-fill { animation: tpbPulse 1.8s ease-in-out infinite; }
+@keyframes tpbPulse { 0%,100%{box-shadow: 0 0 0 0 rgba(129,199,132,0);} 50%{box-shadow: 0 0 0 8px rgba(129,199,132,.4);} }
+.tpb-effect-shake .tpb-fill { animation: tpbShake .35s ease-in-out infinite; }
+@keyframes tpbShake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-1.5px);} 75%{transform:translateX(1.5px);} }
+.tpb-effect-leaf-particles[data-percent="100"] .tpb-track::after { content:'🍃'; position:absolute; right:10%; top:-16px; font-size:16px; animation: tpbLeaf 1.6s ease-in-out infinite; }
+@keyframes tpbLeaf { 0%{opacity:0; transform:translate(0,-4px) rotate(0);} 50%{opacity:1;} 100%{opacity:0; transform:translate(10px,8px) rotate(30deg);} }
+#growthLayer .gm-tag { display:none; }
+#growthLayer.error-pulse { animation: midErrorPulse .6s ease-in-out; }
+#growthLayer.success-pulse { animation: midSuccessPulse .6s ease-in-out; }
+#growthLayer .gm-tag { position:absolute; left:8px; top:6px; font-size:10px; font-weight:900; background:rgba(255,255,255,.55); color:#0277b8; padding:2px 8px; border-radius:9999px; pointer-events:none; }
+@keyframes midErrorPulse { 0%,100%{filter:saturate(.85) drop-shadow(0 8px 20px rgba(0,0,0,.18));} 50%{filter:saturate(.3) brightness(.7) drop-shadow(0 8px 20px rgba(0,0,0,.18));} }
+@keyframes midSuccessPulse { 0%,100%{filter:saturate(.85) drop-shadow(0 8px 20px rgba(0,0,0,.18));} 50%{filter:saturate(1.4) brightness(1.15) drop-shadow(0 8px 30px #ff7b54);} }
+#stemPanel { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 20; background: rgba(255,253,245,var(--stem-alpha)); border: 3px solid rgba(255,255,255,.85); border-radius: calc(var(--card-radius) + 6px); box-shadow: 0 12px 28px rgba(0,0,0,.22); padding: 14px 36px; min-width: 260px; max-width: 80vw; text-align: center; }
+#stemLabel { font-size: 11px; color: var(--theme-accent); font-weight: 800; letter-spacing: 2px; margin-bottom: 4px; }
+#stemText { font-size: 32px; font-weight: 900; color: #1a1a1a; line-height: 1.2; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
+#wordsLayer { position: absolute; inset: 0; z-index: 15; pointer-events: none; overflow: hidden; }
+.flying-word { position: absolute; display: inline-flex; align-items: center; justify-content: center; padding: 14px 26px; border-radius: var(--card-radius); font-weight: 900; font-size: 26px; color: #1a1a1a; background: rgba(255,255,255,var(--card-alpha)); border: 3px solid var(--theme-accent); box-shadow: 0 10px 24px rgba(0,0,0,.22); white-space: nowrap; cursor: pointer; pointer-events: auto; text-shadow: 0 1px 0 rgba(255,255,255,.6); }
+#stemText, .flying-word { -webkit-text-stroke: 0; }
+#character { position: absolute; z-index: 22; pointer-events: none; transition: transform .15s ease, filter .25s ease; }
+.char-small { width: 60px; height: 60px; }
+.char-medium { width: 90px; height: 90px; }
+.char-large { width: 130px; height: 130px; }
+.char-xlarge { width: 260px; height: 260px; }
+#character.default-char { background: radial-gradient(circle at 35% 35%, #fff06a, #ff7b54); border-radius: 50%; box-shadow: 0 8px 18px rgba(0,0,0,.25), inset 0 0 0 4px rgba(255,255,255,.4); display: flex; align-items: center; justify-content: center; font-size: 48px; }
+#character.default-char::after { content: "🦀"; }
+#character.no-char { display:none !important; }
+#character.cheer { animation: cheerAnim .6s ease-in-out; }
+#character.faint { animation: faintAnim .8s ease-in-out; }
+#character.sad { filter: grayscale(.6) brightness(.8); }
+@keyframes cheerAnim { 0%,100%{transform:translateY(0) scale(1);} 30%{transform:translateY(-40px) scale(1.2) rotate(-10deg);} 60%{transform:translateY(-25px) scale(1.1) rotate(10deg);} }
+@keyframes faintAnim { 0%{transform:rotate(0);} 50%{transform:rotate(90deg);} 100%{transform:rotate(180deg);} }
+#feedback { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 40; padding: 14px 28px; border-radius: 18px; font-weight: 900; font-size: 20px; color: #fff; box-shadow: 0 14px 30px rgba(0,0,0,.3); pointer-events: none; display: none; text-align: center; max-width: 80vw; }
+#feedback.show { display: block; }
+.score-pop { position: absolute; font-weight: 900; font-size: 32px; pointer-events: none; z-index: 45; animation: scoreFloat 1.2s ease-out forwards; }
+@keyframes scoreFloat { 0%{transform:translateY(0) scale(.8);opacity:0;} 30%{transform:translateY(-30px) scale(1.3);opacity:1;} 100%{transform:translateY(-90px) scale(1);opacity:0;} }
+#startScreen, #endScreen { position: absolute; inset: 0; top: var(--game-topbar-h, 64px); z-index: 60; background: rgba(0,0,0,.55); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; }
+#startScreen.hidden, #endScreen.hidden { display: none; }
+.scroll-bg { background: rgba(255,253,245,.96); border: 3px solid rgba(255,255,255,.86); border-radius: 22px; padding: 28px; max-width: 580px; width: 92%; text-align: center; color: var(--theme-text); max-height: calc(100vh - var(--game-topbar-h, 64px) - 20px); overflow-y: auto; }
+.scroll-bg h2 { font-size: 28px; font-weight: 900; color: var(--theme-accent); margin-bottom: 12px; }
+.btn-game { display: inline-block; padding: 12px 28px; border-radius: 18px; font-weight: 900; color: #fff; border: 0; cursor: pointer; font-size: 16px; margin: 6px; }
+.btn-game.red { background: linear-gradient(180deg,#ff9b62,#ff5d45); }
+.btn-game.amber { background: linear-gradient(180deg,#fff06a,#ffb238); color:#07506f; }
+.flying-word.correct-glow { animation: glowPulse .6s ease-in-out; }
+@keyframes glowPulse { 0%,100%{box-shadow:0 0 0 rgba(40,169,107,0);} 50%{box-shadow:0 0 30px rgba(40,169,107,.9);} }
+.flying-word.error-shake { animation: shakeIt .4s ease-in-out; }
+@keyframes shakeIt { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+.flying-word.error-red { background: linear-gradient(180deg,#fecaca,#fca5a5) !important; border-color:#ef4444 !important; }
+#grayOverlay { position:absolute; inset:0; background:rgba(120,120,120,.45); z-index:39; pointer-events:none; opacity:0; transition: opacity .2s; }
+#grayOverlay.show { opacity:1; }
+#sliceTrail { position:absolute; inset:0; width:100%; height:100%; z-index:35; pointer-events:none; overflow:visible; touch-action:none; }
+.slice-half { position:absolute; z-index:44; pointer-events:none; font-weight:900; font-size:26px; color:#1a1a1a; padding:14px 26px; border-radius: var(--card-radius); background: rgba(255,255,255,var(--card-alpha)); border: 3px solid var(--theme-accent); box-shadow: 0 10px 24px rgba(0,0,0,.22), 0 0 18px rgba(255,255,255,.65); white-space:nowrap; overflow:hidden; }
+.slice-flash { position:absolute; z-index:43; pointer-events:none; border-radius:50%; background: radial-gradient(circle, rgba(255,255,255,.98) 0%, rgba(255,240,106,.78) 36%, rgba(255,123,84,0) 72%); mix-blend-mode: screen; }
+.blade-spark { position:absolute; z-index:48; width:30px; height:30px; margin-left:-15px; margin-top:-15px; border-radius:50%; pointer-events:none; background:radial-gradient(circle,#fff 0%,#fff06a 35%,rgba(255,123,84,0) 72%); filter:drop-shadow(0 0 10px #fff) drop-shadow(0 0 18px var(--theme-accent)); transform:scale(.8); opacity:0; }
+.slice-cut-line { position:absolute; z-index:47; height:7px; border-radius:999px; pointer-events:none; background:linear-gradient(90deg,rgba(255,255,255,0),#fff 18%,#fff06a 50%,#fff 82%,rgba(255,255,255,0)); box-shadow:0 0 12px #fff,0 0 24px var(--theme-accent),0 0 34px rgba(255,123,84,.75); transform-origin:left center; }
+.juice-drop { position:absolute; z-index:42; pointer-events:none; border-radius:50%; }
+.confetti-piece { position:absolute; width:10px; height:14px; pointer-events:none; z-index:46; }
+.coin-piece { position:absolute; font-size:24px; pointer-events:none; z-index:46; }
+.tip-bar { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 22; background: rgba(0,0,0,.5); color: #fff; padding: 6px 16px; border-radius: 18px; font-size: 12px; font-weight: 700; pointer-events: none; }
+#bgmVolWrap { display:inline-flex; align-items:center; gap:6px; }
+#bgmVolWrap input[type=range] { width:80px; }
+@media (max-width: 640px) { #growthLayer { width: calc(150px * var(--mid-scale)); height: calc(150px * var(--mid-scale)); right:8px; bottom:8px; } }
+
+
+
+</style>
+  <meta name="copyright" content="学科网（zxxk.com）版权所有">
+  <meta name="signature" content="QQABCYKl5gAQghSACb5KAUUyCAsYkoCjLCgMRUCSuAxrSANAFIA=">
+ </head>
+ <body class="bg-stage">
+  <canvas id="dynamicBgCanvas"></canvas>
+  <div id="app">
+   <div id="gameTopBar">
+    <div class="flex items-center gap-2 flex-wrap"><button id="btnReplay">↻ 重玩</button> <button id="btnSound" class="is-on">🔊 音效</button> <button id="btnBgm">🎵 BGM</button> <span id="bgmVolWrap"><input id="bgmVolume" type="range" min="0" max="100" value="30"></span>
+    </div>
+    <div class="text-center px-2">
+     <h1>海底总动员</h1>
+     <div class="sub-info">
+      沪教版 · 英语 · 七年级下册 · Unit 5 Water is life
+     </div>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+     <div class="status-badge">
+      分数 <span class="val" id="scoreVal">0</span>
+     </div>
+     <div class="status-badge">
+      第 <span class="val" id="qNum">1</span>/<span id="qTotal">123</span> 题
+     </div>
+     <div class="status-badge">
+      正确率 <span class="val" id="accVal">0%</span>
+     </div>
+    </div>
+   </div>
+   <div id="gameStage">
+    <div id="grayOverlay"></div>
+    <div id="growthLayer"></div>
+    <svg id="sliceTrail"><defs>
+      <lineargradient id="trailGrad" x1="0" y1="0" x2="1" y2="0">
+       <stop offset="0" stop-color="#ffffff" stop-opacity="0" />
+       <stop offset="0.5" stop-color="#ffffff" stop-opacity="1" />
+       <stop offset="1" stop-color="#fff06a" stop-opacity="0" />
+      </lineargradient>
+     </defs>
+    </svg>
+    <div id="stemPanel">
+     <div id="stemLabel">
+      题目 · 选择正确选项
+     </div>
+     <div id="stemText">
+      准备开始
+     </div>
+    </div>
+    <div id="wordsLayer"></div>
+    <div id="character" class="char-medium default-char"></div>
+    <div id="feedback"></div>
+    <div id="dragBasket" style="position:absolute;left:50%;bottom:60px;transform:translateX(-50%);z-index:21;display:none;align-items:center;justify-content:center;width:240px;height:90px;border:4px dashed var(--theme-accent);border-radius:18px;background:rgba(255,255,255,.35);color:var(--theme-accent);font-weight:900;font-size:18px;pointer-events:none;">
+     🧺 拖入正确选项
+    </div>
+    <div class="tip-bar">
+     💡 互动模式：操控角色碰撞选项 · 右下中景：鱼苗珊瑚宝藏
+    </div>
+   </div>
+   <div id="startScreen" class="hidden">
+    <div class="scroll-bg">
+     <h2>🌐 海底总动员</h2>
+     <div class="text-sm font-bold mb-3" style="color:var(--theme-accent);">
+      沪教版 · 英语 · 七年级下册 · Unit 5 Water is life
+     </div>
+     <div class="text-left text-sm rounded-lg p-3 mb-4" style="background:rgba(255,253,235,.76); border:1px solid rgba(240,161,43,.4);">
+      <div class="font-bold mb-2" style="color:var(--theme-accent);">
+       🎮 三层三明治互动
+      </div>
+      <div class="space-y-1 text-xs">
+       <div>
+        · 主题：<b>海底总动员</b> · 中景：<b>鱼苗珊瑚宝藏</b> · BGM：<b>童趣</b>
+       </div>
+       <div>
+        · 底层背景 + 中景成长反馈（右下，不可点击） + 前景题目与选项
+       </div>
+       <div>
+        · 答对推进成长，答错回退；中景层不干扰题目操作
+       </div>
+      </div>
+     </div><button id="btnStart" class="btn-game red">开始互动 ▶</button>
+    </div>
+   </div>
+   <div id="endScreen" class="hidden">
+    <div class="scroll-bg">
+     <h2>🎉 闯关结算</h2>
+     <div id="starsRow" class="flex justify-center gap-3 my-3 text-5xl">
+     </div>
+     <div class="grid grid-cols-2 gap-2 my-4">
+      <div class="rounded-lg p-3" style="background:rgba(255,253,235,.76);">
+       <div class="text-xs" style="color:var(--theme-accent);">
+        总得分
+       </div>
+       <div class="text-2xl font-black" style="color:var(--theme-accent);" id="finalScore">
+        0
+       </div>
+      </div>
+      <div class="rounded-lg p-3" style="background:rgba(255,253,235,.76);">
+       <div class="text-xs" style="color:#28a96b;">
+        正确率
+       </div>
+       <div class="text-2xl font-black" style="color:#28a96b;" id="finalAcc">
+        0%
+       </div>
+      </div><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAAVCAIAAABOhrD5AAAAiklEQVR42u1TWw6AMAjr/Q9NjV8Kg0I08cc1i9kMWx8B8ITdvukx7EPBHAZ/uXrOspUqaCqRGeJi9OW6HoE/C6M67cpTBBYOFsQmpYhi9x+1fWqlhQ7qegxzqAmsc+laBl3LpSOhc1YDA2lCyOc46uivbQHWfMMkrw3qhtTj/BDgt9h8m2/z/YfvAJ9dEYq/GX05AAAAAElFTkSuQmCC" style="position: absolute; left: -99999px; top: -99999px; opacity: 0; pointer-events: none; width: 1px; height: 1px;">
+     </div><button id="btnAgain" class="btn-game amber">↻ 再玩一次</button>
+    </div>
+   </div>
+  </div>
+  <script>
+  const QUESTIONS = [
+{"stem":"整理；整洁的","correct":"tidy","distractor":"mess","chineseDecoy":"整理；整洁的"},
+{"stem":"脏乱；不整洁","correct":"mess","distractor":"tidy","chineseDecoy":"脏乱；不整洁"},
+{"stem":"让","correct":"let","distractor":"stick","chineseDecoy":"让"},
+{"stem":"短袜","correct":"sock","distractor":"cap","chineseDecoy":"短袜"},
+{"stem":"你的；你们的","correct":"yours","distractor":"mine","chineseDecoy":"你的；你们的"},
+{"stem":"帽子","correct":"cap","distractor":"sock","chineseDecoy":"帽子"},
+{"stem":"我的","correct":"mine","distractor":"yours","chineseDecoy":"我的"},
+{"stem":"彩色蜡笔","correct":"crayon","distractor":"umbrella","chineseDecoy":"彩色蜡笔"},
+{"stem":"伞","correct":"umbrella","distractor":"nail","chineseDecoy":"伞"},
+{"stem":"钉子","correct":"nail","distractor":"drop","chineseDecoy":"钉子"},
+{"stem":"使落下","correct":"drop","distractor":"stick","chineseDecoy":"使落下"},
+{"stem":"粘贴；粘住","correct":"stick","distractor":"second","chineseDecoy":"粘贴；粘住"},
+{"stem":"秒","correct":"second","distractor":"hers","chineseDecoy":"秒"},
+{"stem":"她的","correct":"hers","distractor":"theirs","chineseDecoy":"她的"},
+{"stem":"他们的；她们的；它们的","correct":"theirs","distractor":"hers","chineseDecoy":"他们的；她们的；它们的"},
+{"stem":"把…整理好","correct":"tidy up","distractor":"(be) full of","chineseDecoy":"把…整理好"},
+{"stem":"装满…；充满…","correct":"(be) full of","distractor":"a few","chineseDecoy":"装满…；充满…"},
+{"stem":"几个；一些","correct":"a few","distractor":"why","chineseDecoy":"几个；一些"},
+{"stem":"为什么","correct":"why","distractor":"because","chineseDecoy":"为什么"},
+{"stem":"因为","correct":"because","distractor":"why","chineseDecoy":"因为"},
+{"stem":"书房；学习","correct":"study","distractor":"dining room","chineseDecoy":"书房；学习"},
+{"stem":"餐室；餐厅","correct":"dining room","distractor":"wild goose","chineseDecoy":"餐室；餐厅"},
+{"stem":"大雁","correct":"wild goose","distractor":"change","chineseDecoy":"大雁"},
+{"stem":"改变；变化","correct":"change","distractor":"place","chineseDecoy":"改变；变化"},
+{"stem":"地方","correct":"place","distractor":"twice","chineseDecoy":"地方"},
+{"stem":"两次","correct":"twice","distractor":"every","chineseDecoy":"两次"},
+{"stem":"每；每个","correct":"every","distractor":"north","chineseDecoy":"每；每个"},
+{"stem":"北方；向北","correct":"north","distractor":"south","chineseDecoy":"北方；向北"},
+{"stem":"南方；向南","correct":"south","distractor":"north","chineseDecoy":"南方；向南"},
+{"stem":"足够的","correct":"enough","distractor":"then","chineseDecoy":"足够的"},
+{"stem":"然后","correct":"then","distractor":"all day","chineseDecoy":"然后"},
+{"stem":"一天到晚","correct":"all day","distractor":"future","chineseDecoy":"一天到晚"},
+{"stem":"将来；未来","correct":"future","distractor":"stand","chineseDecoy":"将来；未来"},
+{"stem":"站；站住","correct":"stand","distractor":"machine","chineseDecoy":"站；站住"},
+{"stem":"机器","correct":"machine","distractor":"will","chineseDecoy":"机器"},
+{"stem":"将；将会","correct":"will","distractor":"exercise","chineseDecoy":"将；将会"},
+{"stem":"运动；锻炼；活动","correct":"exercise","distractor":"early","chineseDecoy":"运动；锻炼；活动"},
+{"stem":"早；提早","correct":"early","distractor":"hard","chineseDecoy":"早；提早"},
+{"stem":"努力地","correct":"hard","distractor":"more","chineseDecoy":"努力地"},
+{"stem":"更多的","correct":"more","distractor":"in the future","chineseDecoy":"更多的"},
+{"stem":"将来","correct":"in the future","distractor":"in front of","chineseDecoy":"将来"},
+{"stem":"在........前面","correct":"in front of","distractor":"take a photo","chineseDecoy":"在........前面"},
+{"stem":"拍照","correct":"take a photo","distractor":"wear glasses","chineseDecoy":"拍照"},
+{"stem":"戴眼镜","correct":"wear glasses","distractor":"do exercise","chineseDecoy":"戴眼镜"},
+{"stem":"做运动","correct":"do exercise","distractor":"(be) weak in","chineseDecoy":"做运动"},
+{"stem":"不擅长","correct":"(be) weak in","distractor":"not…any more","chineseDecoy":"不擅长"},
+{"stem":"不再","correct":"not…any more","distractor":"storybook","chineseDecoy":"不再"},
+{"stem":"故事书","correct":"storybook","distractor":"buy","chineseDecoy":"故事书"},
+{"stem":"买","correct":"buy","distractor":"story","chineseDecoy":"买"},
+{"stem":"故事","correct":"story","distractor":"dictionary","chineseDecoy":"故事"},
+{"stem":"字典；词典","correct":"dictionary","distractor":"magazine","chineseDecoy":"字典；词典"},
+{"stem":"杂志","correct":"magazine","distractor":"newspaper","chineseDecoy":"杂志"},
+{"stem":"报纸","correct":"newspaper","distractor":"week","chineseDecoy":"报纸"},
+{"stem":"周；星期","correct":"week","distractor":"student","chineseDecoy":"周；星期"},
+{"stem":"学生","correct":"student","distractor":"poster","chineseDecoy":"学生"},
+{"stem":"海报","correct":"poster","distractor":"best","chineseDecoy":"海报"},
+{"stem":"最好的","correct":"best","distractor":"writer","chineseDecoy":"最好的"},
+{"stem":"作家","correct":"writer","distractor":"over there","chineseDecoy":"作家"},
+{"stem":"在那边","correct":"over there","distractor":"do a survey","chineseDecoy":"在那边"},
+{"stem":"做调查","correct":"do a survey","distractor":"act…out","chineseDecoy":"做调查"},
+{"stem":"表演","correct":"act…out","distractor":"weekend","chineseDecoy":"表演"},
+{"stem":"周末","correct":"weekend","distractor":"stay","chineseDecoy":"周末"},
+{"stem":"待；暂住；逗留","correct":"stay","distractor":"film","chineseDecoy":"待；暂住；逗留"},
+{"stem":"电影","correct":"film","distractor":"boat","chineseDecoy":"电影"},
+{"stem":"小船","correct":"boat","distractor":"plan","chineseDecoy":"小船"},
+{"stem":"安排；计划","correct":"plan","distractor":"tomorrow","chineseDecoy":"安排；计划"},
+{"stem":"明天","correct":"tomorrow","distractor":"build","chineseDecoy":"明天"},
+{"stem":"建筑；建造","correct":"build","distractor":"next","chineseDecoy":"建筑；建造"},
+{"stem":"紧接着；随后；紧接着的","correct":"next","distractor":"swing","chineseDecoy":"紧接着；随后；紧接着的"},
+{"stem":"秋千","correct":"swing","distractor":"cry","chineseDecoy":"秋千"},
+{"stem":"哭；喊叫","correct":"cry","distractor":"until","chineseDecoy":"哭；喊叫"},
+{"stem":"直到","correct":"until","distractor":"see a film","chineseDecoy":"直到"},
+{"stem":"看电影","correct":"see a film","distractor":"row a boat","chineseDecoy":"看电影"},
+{"stem":"划船","correct":"row a boat","distractor":"holiday","chineseDecoy":"划船"},
+{"stem":"假日；假期","correct":"holiday","distractor":"clear","chineseDecoy":"假日；假期"},
+{"stem":"清澈的","correct":"clear","distractor":"seafood","chineseDecoy":"清澈的"},
+{"stem":"海鲜","correct":"seafood","distractor":"hotel","chineseDecoy":"海鲜"},
+{"stem":"旅馆","correct":"hotel","distractor":"island","chineseDecoy":"旅馆"},
+{"stem":"岛","correct":"island","distractor":"butterfly","chineseDecoy":"岛"},
+{"stem":"蝴蝶","correct":"butterfly","distractor":"how long","chineseDecoy":"蝴蝶"},
+{"stem":"多久","correct":"how long","distractor":"go swimming","chineseDecoy":"多久"},
+{"stem":"去游泳","correct":"go swimming","distractor":"in the south of","chineseDecoy":"去游泳"},
+{"stem":"在…..的南部","correct":"in the south of","distractor":"all year round","chineseDecoy":"在…..的南部"},
+{"stem":"一年到头","correct":"all year round","distractor":"meet","chineseDecoy":"一年到头"},
+{"stem":"迎接；会见","correct":"meet","distractor":"school gate","chineseDecoy":"迎接；会见"},
+{"stem":"校门口；校门","correct":"school gate","distractor":"art room","chineseDecoy":"校门口；校门"},
+{"stem":"美术室","correct":"art room","distractor":"hall","chineseDecoy":"美术室"},
+{"stem":"礼堂","correct":"hall","distractor":"finally","chineseDecoy":"礼堂"},
+{"stem":"最后","correct":"finally","distractor":"meeting room","chineseDecoy":"最后"},
+{"stem":"会客厅；会议室","correct":"meeting room","distractor":"show","chineseDecoy":"会客厅；会议室"},
+{"stem":"给…看","correct":"show","distractor":"project","chineseDecoy":"给…看"},
+{"stem":"课题","correct":"project","distractor":"board","chineseDecoy":"课题"},
+{"stem":"布告牌；木板","correct":"board","distractor":"which","chineseDecoy":"布告牌；木板"},
+{"stem":"哪一个；哪一些","correct":"which","distractor":"trousers","chineseDecoy":"哪一个；哪一些"},
+{"stem":"裤子","correct":"trousers","distractor":"size","chineseDecoy":"裤子"},
+{"stem":"尺码","correct":"size","distractor":"sweater","chineseDecoy":"尺码"},
+{"stem":"毛衣","correct":"sweater","distractor":"coat","chineseDecoy":"毛衣"},
+{"stem":"外套","correct":"coat","distractor":"shoe","chineseDecoy":"外套"},
+{"stem":"鞋","correct":"shoe","distractor":"emperor","chineseDecoy":"鞋"},
+{"stem":"皇帝","correct":"emperor","distractor":"only","chineseDecoy":"皇帝"},
+{"stem":"只有；仅","correct":"only","distractor":"nod","chineseDecoy":"只有；仅"},
+{"stem":"点头","correct":"nod","distractor":"smile","chineseDecoy":"点头"},
+{"stem":"微笑；笑容","correct":"smile","distractor":"money","chineseDecoy":"微笑；笑容"},
+{"stem":"钱","correct":"money","distractor":"keep","chineseDecoy":"钱"},
+{"stem":"保持","correct":"keep","distractor":"laugh","chineseDecoy":"保持"},
+{"stem":"大笑","correct":"laugh","distractor":"try…on","chineseDecoy":"大笑"},
+{"stem":"试穿（衣物)","correct":"try…on","distractor":"put…on","chineseDecoy":"试穿（衣物)"},
+{"stem":"穿 ；戴","correct":"put…on","distractor":"keep quiet","chineseDecoy":"穿 ；戴"},
+{"stem":"保持安静","correct":"keep quiet","distractor":"have a look","chineseDecoy":"保持安静"},
+{"stem":"看一看","correct":"have a look","distractor":"ill","chineseDecoy":"看一看"},
+{"stem":"生病的；不舒服","correct":"ill","distractor":"wrong","chineseDecoy":"生病的；不舒服"},
+{"stem":"有毛病；不正常；错误的","correct":"wrong","distractor":"headache","chineseDecoy":"有毛病；不正常；错误的"},
+{"stem":"头痛","correct":"headache","distractor":"fever","chineseDecoy":"头痛"},
+{"stem":"发烧；发热","correct":"fever","distractor":"should","chineseDecoy":"发烧；发热"},
+{"stem":"应该","correct":"should","distractor":"medicine","chineseDecoy":"应该"},
+{"stem":"药","correct":"medicine","distractor":"rest","chineseDecoy":"药"},
+{"stem":"休息","correct":"rest","distractor":"toothache","chineseDecoy":"休息"},
+{"stem":"牙痛","correct":"toothache","distractor":"toothless","chineseDecoy":"牙痛"},
+{"stem":"没有牙齿的","correct":"toothless","distractor":"present","chineseDecoy":"没有牙齿的"},
+{"stem":"礼物","correct":"present","distractor":"world","chineseDecoy":"礼物"},
+{"stem":"世界","correct":"world","distractor":"dentist","chineseDecoy":"世界"},
+{"stem":"牙医","correct":"dentist","distractor":"have a headache","chineseDecoy":"牙医"},
+{"stem":"头痛","correct":"have a headache","distractor":"have a fever","chineseDecoy":"头痛"},
+{"stem":"发烧","correct":"have a fever","distractor":"have a cold","chineseDecoy":"发烧"},
+{"stem":"感冒","correct":"have a cold","distractor":"have a rest","chineseDecoy":"感冒"},
+{"stem":"休息一下","correct":"have a rest","distractor":"get well","chineseDecoy":"休息一下"},
+{"stem":"康复","correct":"get well","distractor":"have a toothache","chineseDecoy":"康复"},
+{"stem":"牙痛","correct":"have a toothache","distractor":"have a meeting","chineseDecoy":"牙痛"},
+{"stem":"开会","correct":"have a meeting","distractor":"pull…out","chineseDecoy":"开会"},
+{"stem":"把…拔出","correct":"pull…out","distractor":"invention","chineseDecoy":"把…拔出"},
+{"stem":"发明","correct":"invention","distractor":"watch","chineseDecoy":"发明"},
+{"stem":"手表","correct":"watch","distractor":"anywhere","chineseDecoy":"手表"},
+{"stem":"任何地方","correct":"anywhere","distractor":"travel","chineseDecoy":"任何地方"},
+{"stem":"旅行；长途旅行","correct":"travel","distractor":"invent","chineseDecoy":"旅行；长途旅行"},
+{"stem":"发明","correct":"invent","distractor":"something","chineseDecoy":"发明"},
+{"stem":"某事；某物","correct":"something","distractor":"myself","chineseDecoy":"某事；某物"},
+{"stem":"我自己","correct":"myself","distractor":"camera","chineseDecoy":"我自己"},
+{"stem":"相机","correct":"camera","distractor":"far away from…","chineseDecoy":"相机"},
+{"stem":"...远离...","correct":"far away from…","distractor":"festival","chineseDecoy":"...远离..."},
+{"stem":"节日","correct":"festival","distractor":"important","chineseDecoy":"节日"},
+{"stem":"重要的","correct":"important","distractor":"call","chineseDecoy":"重要的"},
+{"stem":"把…叫做","correct":"call","distractor":"dumpling","chineseDecoy":"把…叫做"},
+{"stem":"饺子","correct":"dumpling","distractor":"relative","chineseDecoy":"饺子"},
+{"stem":"亲戚","correct":"relative","distractor":"red packet","chineseDecoy":"亲戚"},
+{"stem":"红色","correct":"red packet","distractor":"firework","chineseDecoy":"红色"},
+{"stem":"烟火；烟花","correct":"firework","distractor":"monster","chineseDecoy":"烟火；烟花"},
+{"stem":"怪物","correct":"monster","distractor":"end","chineseDecoy":"怪物"},
+{"stem":"结尾","correct":"end","distractor":"village","chineseDecoy":"结尾"},
+{"stem":"村庄","correct":"village","distractor":"last","chineseDecoy":"村庄"},
+{"stem":"最后的","correct":"last","distractor":"firecracker","chineseDecoy":"最后的"},
+{"stem":"鞭炮；炮竹","correct":"firecracker","distractor":"mooncake","chineseDecoy":"鞭炮；炮竹"},
+{"stem":"月饼","correct":"mooncake","distractor":"at the end of","chineseDecoy":"月饼"},
+{"stem":"在…的最后","correct":"at the end of","distractor":"giant","chineseDecoy":"在…的最后"},
+{"stem":"巨人","correct":"giant","distractor":"wall","chineseDecoy":"巨人"},
+{"stem":"墙；围墙","correct":"wall","distractor":"kind","chineseDecoy":"墙；围墙"},
+{"stem":"友好的；体贴的","correct":"kind","distractor":"through","chineseDecoy":"友好的；体贴的"},
+{"stem":"穿过","correct":"through","distractor":"no entry","chineseDecoy":"穿过"},
+{"stem":"禁止进入","correct":"no entry","distractor":"(be)kind to…","chineseDecoy":"禁止进入"},
+{"stem":"…对…友好","correct":"(be)kind to…","distractor":"knock down","chineseDecoy":"…对…友好"},
+{"stem":"推掉；拆掉","correct":"knock down","distractor":"tidy","chineseDecoy":"推掉；拆掉"}
+];
+const ALL_WORDS = ["tidy","mess","let","sock","yours","cap","mine","crayon","umbrella","nail","drop","stick","second","hers","theirs","tidy up","(be) full of","a few","why","because","study","dining room","wild goose","change","place","twice","every","north","south","enough","then","all day","future","stand","machine","will","exercise","early","hard","more","in the future","in front of","take a photo","wear glasses","do exercise","(be) weak in","not…any more","storybook","buy","story","dictionary","magazine","newspaper","week","student","poster","best","writer","over there","do a survey","act…out","weekend","stay","film","boat","plan","tomorrow","build","next","swing","cry","until","see a film","row a boat","holiday","clear","seafood","hotel","island","butterfly","how long","go swimming","in the south of","all year round","meet","school gate","art room","hall","finally","meeting room","show","project","board","which","trousers","size","sweater","coat","shoe","emperor","only","nod","smile","money","keep","laugh","try…on","put…on","keep quiet","have a look","ill","wrong","headache","fever","should","medicine","rest","toothache","toothless","present","world","dentist","have a headache","have a fever","have a cold","have a rest","get well","have a toothache","have a meeting","pull…out","invention","watch","anywhere","travel","invent","something","myself","camera","far away from…","festival","important","call","dumpling","relative","red packet","firework","monster","end","village","last","firecracker","mooncake","at the end of","giant","wall","kind","through","no entry","(be)kind to…","knock down"];const ENTRY_MODE = "groundUp";
+const SPEED = "normal";
+const OPTION_COUNT = 4;
+const INTERACTION_MODE = "collide";
+const CHARACTER_TRACK = "followMouse";
+const CHARACTER_START = "center";
+const CHARACTER_EMOTE = "on";
+const SUCCESS_FX = "coin";
+const ERROR_FX = "red";
+const END_FX = "chime";
+const DYNAMIC_BG = false;
+const GROWTH_KIND = "coral";
+const THEME_KEY = "ocean";
+const THEME_PROGRESS_CFG = {"key":"ocean","alias":"Ocean","name":"海底总动员","trackColor":"#e1f5fe","fillGradient":"linear-gradient(90deg, #4fc3f7, #0288d1)","effect":"bubble-float","stages":[{"min":0,"max":30,"emoji":"🦐","label":"小虾米"},{"min":31,"max":70,"emoji":"🐡","label":"小河豚"},{"min":71,"max":99,"emoji":"🐬","label":"小海豚"},{"min":100,"max":100,"emoji":"👑","label":"海洋皇冠"}]};
+const BGM_NOTES = [[659,0.2],[784,0.2],[880,0.2],[784,0.2],[659,0.2],[523,0.4]];
+const BGM_TEMPO = 150;
+const BGM_STRATEGY = "onstart";
+const BGM_VOLUME_INIT = 0.3;
+const THEME_ACCENT = "#ff7b54";
+const OPENING_GUIDE = "off";
+
+const SPEED_MAP = {
+  easy: { base: 1.2, lifespan: 9000 },
+  normal: { base: 1.8, lifespan: 7000 },
+  hard: { base: 2.6, lifespan: 5500 },
+  expert: { base: 3.4, lifespan: 4500 }
+};
+
+const gameState = {
+  current: 0,
+  score: 0,
+  correctCount: 0,
+  wrongCount: 0,
+  results: [],
+  soundOn: true,
+  bgmOn: BGM_STRATEGY !== "off",
+  bgmVolume: BGM_VOLUME_INIT,
+  answered: false,
+  flyingWords: [],
+  rafId: null,
+  growthLevel: 0,
+  growthMax: Math.max(5, QUESTIONS.length)
+};
+
+function renderProgressBar() {
+  const layer = document.getElementById("growthLayer");
+  if (!layer) return;
+  const cfg = THEME_PROGRESS_CFG;
+  const pct = Math.max(0, Math.min(100, Math.round((gameState.growthLevel / gameState.growthMax) * 100)));
+  let emoji = cfg.stages[cfg.stages.length - 1].emoji;
+  for (let i = 0; i < cfg.stages.length; i++) { if (pct >= cfg.stages[i].min && pct <= cfg.stages[i].max) { emoji = cfg.stages[i].emoji; break; } }
+  layer.style.setProperty("--track-color", cfg.trackColor);
+  layer.style.setProperty("--fill-gradient", cfg.fillGradient);
+  layer.className = "theme-progress-bar tpb-effect-" + cfg.effect;
+  layer.dataset.theme = THEME_KEY;
+  layer.dataset.percent = String(pct);
+  if (THEME_KEY === "ink") {
+    if (pct <= 30) layer.dataset.stage = "brush";
+    else if (pct <= 70) layer.dataset.stage = "scroll";
+    else if (pct <= 99) layer.dataset.stage = "mountain";
+    else layer.dataset.stage = "dragon";
+  } else { delete layer.dataset.stage; }
+  layer.innerHTML = '<div class="tpb-track"><div class="tpb-fill" style="width:' + pct + '%"></div><div class="tpb-emoji" style="left:' + pct + '%">' + emoji + '</div></div><div class="tpb-label">' + cfg.name + ' · ' + pct + '%</div>';
+}
+const GROWTH_API = {
+  update: function(correct) {
+    const layer = document.getElementById("growthLayer");
+    if (!layer) return;
+    if (correct) gameState.growthLevel = Math.min(gameState.growthMax, gameState.growthLevel + 1);
+    else gameState.growthLevel = Math.max(0, gameState.growthLevel - 1);
+    renderProgressBar();
+    layer.classList.remove("success-pulse","error-pulse");
+    void layer.offsetWidth;
+    return;
+    layer.classList.remove("success-pulse","error-pulse");
+    void layer.offsetWidth;
+    layer.classList.add(correct ? "success-pulse" : "error-pulse");
+    setTimeout(function(){ layer.classList.remove("success-pulse","error-pulse"); }, 700);
+    const svg = layer.querySelector("svg");
+    if (!svg) return;
+    const lv = gameState.growthLevel;
+    const ratio = lv / gameState.growthMax;
+    if (GROWTH_KIND === "plant") {
+      const stem = svg.querySelector(".g-stem");
+      const l1 = svg.querySelector(".g-leaf1");
+      const l2 = svg.querySelector(".g-leaf2");
+      const fl = svg.querySelector(".g-flower");
+      if (stem) stem.style.transform = "scaleY(" + Math.min(1, ratio * 2) + ")";
+      if (l1) l1.style.transform = "scale(" + (ratio >= 0.3 ? 1 : 0) + ")";
+      if (l2) l2.style.transform = "scale(" + (ratio >= 0.5 ? 1 : 0) + ")";
+      if (fl) fl.style.transform = "scale(" + (ratio >= 0.85 ? 1 : (ratio >= 0.65 ? 0.6 : 0)) + ")";
+    } else if (GROWTH_KIND === "stars") {
+      const stars = svg.querySelectorAll(".g-star");
+      const lines = svg.querySelectorAll(".g-line");
+      const litCount = Math.round(ratio * stars.length);
+      stars.forEach(function(s, i){ s.setAttribute("opacity", i < litCount ? "1" : "0.25"); });
+      const lineCount = Math.round(ratio * lines.length);
+      lines.forEach(function(ln, i){ ln.style.transition = "stroke-dashoffset .8s ease"; ln.setAttribute("stroke-dashoffset", i < lineCount ? "0" : "100"); });
+    } else if (GROWTH_KIND === "tree") {
+      const lv2 = svg.querySelector(".g-leaves");
+      const bf = svg.querySelector(".g-butterfly");
+      if (lv2) lv2.setAttribute("opacity", Math.min(1, ratio * 1.5).toString());
+      if (bf) bf.setAttribute("opacity", ratio >= 0.7 ? "1" : "0");
+    } else if (GROWTH_KIND === "scroll") {
+      const ink = svg.querySelector(".g-ink");
+      if (ink) ink.setAttribute("opacity", Math.min(1, ratio * 1.2).toString());
+    } else if (GROWTH_KIND === "chip") {
+      const traces = svg.querySelectorAll(".g-trace");
+      const dots = svg.querySelectorAll(".g-dot");
+      const c = Math.round(ratio * traces.length);
+      traces.forEach(function(t, i){ t.style.transition = "stroke-dashoffset .7s ease"; t.setAttribute("stroke-dashoffset", i < c ? "0" : "40"); });
+      dots.forEach(function(d, i){ d.setAttribute("opacity", i < c ? "1" : "0.3"); });
+    } else if (GROWTH_KIND === "crystal") {
+      const gas = svg.querySelector(".g-gas");
+      const runes = svg.querySelector(".g-runes");
+      if (gas) gas.setAttribute("opacity", Math.min(1, ratio * 1.2).toString());
+      if (runes) { runes.setAttribute("opacity", ratio >= 0.5 ? "1" : "0"); runes.style.transform = "rotate(" + (lv * 25) + "deg)"; }
+    } else if (GROWTH_KIND === "coral") {
+      const coral = svg.querySelector(".g-coral");
+      const fish = svg.querySelector(".g-fish");
+      const colors = ["#888","#a89090","#c99988","#e8a070","#ff9b62","#ff7b54"];
+      const ci = Math.min(5, Math.round(ratio * 5));
+      if (coral) coral.setAttribute("fill", colors[ci]);
+      if (fish) fish.setAttribute("opacity", ratio >= 0.7 ? "1" : "0");
+    } else if (GROWTH_KIND === "ferris") {
+      const cabins = svg.querySelectorAll(".g-cabin");
+      const wheel = svg.querySelector(".g-wheel");
+      const colors = ["#ff69b4","#fff06a","#9be7c4","#35d5ee","#b794f4","#ffb238","#ff5d45","#78d86f"];
+      const cn = Math.round(ratio * cabins.length);
+      cabins.forEach(function(c, i){ if (i < cn) { c.setAttribute("fill", colors[i % 8]); c.setAttribute("opacity", "1"); } else { c.setAttribute("fill", "#888"); c.setAttribute("opacity", ".5"); } });
+      if (wheel) wheel.style.transform = "rotate(" + (lv * 30) + "deg)";
+    } else if (GROWTH_KIND === "ring") {
+      const ring = svg.querySelector(".g-ring");
+      const txt = svg.querySelector(".g-ring-text");
+      const pct = Math.round(ratio * 100);
+      if (ring) ring.setAttribute("stroke-dashoffset", String(377 - 377 * (pct / 100)));
+      if (txt) txt.textContent = pct + "%";
+    } else if (GROWTH_KIND === "rage") {
+      const r = svg.querySelector(".g-rage");
+      if (r) { const h = ratio * 146; r.setAttribute("height", String(h)); r.setAttribute("y", String(176 - h)); }
+    }
+  },
+  reset: function() { gameState.growthLevel = 0; renderProgressBar(); }
+};
+
+let sfxCtx = null;
+let bgmGain = null;
+let bgmTimer = null;
+function getSfxCtx() {
+  try {
+    if (!sfxCtx) sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (sfxCtx.state === "suspended") sfxCtx.resume();
+    return sfxCtx;
+  } catch(e) { return null; }
+}
+function playTone(freq, duration, type, volume) {
+  if (!gameState.soundOn) return;
+  const ctx = getSfxCtx();
+  if (!ctx) return;
+  try {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const t0 = ctx.currentTime;
+    osc.type = type || "square";
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(volume || 0.2, t0 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + duration + 0.05);
+  } catch(e) {}
+}
+function startBgm() {
+  if (!gameState.bgmOn) return;
+  if (!BGM_NOTES || !BGM_NOTES.length) return;
+  stopBgm();
+  const ctx = getSfxCtx();
+  if (!ctx) return;
+  bgmGain = ctx.createGain();
+  bgmGain.gain.value = gameState.bgmVolume * 0.3;
+  bgmGain.connect(ctx.destination);
+  let idx = 0;
+  const playNext = () => {
+    if (!gameState.bgmOn || !bgmGain) return;
+    const note = BGM_NOTES[idx % BGM_NOTES.length];
+    const freq = note[0];
+    const dur = note[1] * (60 / BGM_TEMPO) * 2;
+    try {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+      osc.connect(g);
+      g.connect(bgmGain);
+      osc.start();
+      osc.stop(ctx.currentTime + dur + 0.05);
+    } catch(e) {}
+    idx++;
+    bgmTimer = setTimeout(playNext, dur * 1000);
+  };
+  playNext();
+}
+function stopBgm() {
+  if (bgmTimer) { clearTimeout(bgmTimer); bgmTimer = null; }
+  if (bgmGain) { try { bgmGain.disconnect(); } catch(e) {} bgmGain = null; }
+}
+function setBgmVolume(v) {
+  gameState.bgmVolume = v;
+  if (bgmGain) bgmGain.gain.value = v * 0.3;
+}
+
+const wordsLayer = document.getElementById("wordsLayer");
+const stemText = document.getElementById("stemText");
+const feedbackEl = document.getElementById("feedback");
+const scoreValEl = document.getElementById("scoreVal");
+const qNumEl = document.getElementById("qNum");
+const accValEl = document.getElementById("accVal");
+const gameStage = document.getElementById("gameStage");
+const character = document.getElementById("character");
+const grayOverlay = document.getElementById("grayOverlay");
+
+let mouseX = 0;
+let mouseY = 0;
+let charX = 0;
+let charY = 0;
+let charDir = 1;
+let charVY = 0;
+let charJumpV = 0;
+let charBaseY = 0;
+let charWaveT = 0;
+let pathPoints = [];
+let pathIdx = 0;
+
+function initCharacter() {
+  const stageW = gameStage.clientWidth;
+  const stageH = gameStage.clientHeight;
+  const cw = character.offsetWidth;
+  const ch = character.offsetHeight;
+  charBaseY = stageH - ch - 30;
+  if (CHARACTER_START === "left") charX = 30;
+  else if (CHARACTER_START === "right") charX = stageW - cw - 30;
+  else if (CHARACTER_START === "random") charX = Math.random() * (stageW - cw);
+  else charX = (stageW - cw) / 2;
+  charY = charBaseY;
+  charVY = (Math.random() - 0.5) * 4;
+  character.style.left = charX + "px";
+  character.style.top = charY + "px";
+  pathPoints = [
+    { x: 50, y: stageH - ch - 50 },
+    { x: stageW - cw - 50, y: stageH - ch - 50 },
+    { x: stageW - cw - 50, y: 180 },
+    { x: 50, y: 180 }
+  ];
+  pathIdx = 0;
+}
+
+function updateCharacter() {
+  const stageW = gameStage.clientWidth;
+  const stageH = gameStage.clientHeight;
+  const cw = character.offsetWidth;
+  const ch = character.offsetHeight;
+  charBaseY = stageH - ch - 30;
+  if (INTERACTION_MODE === "catch") {
+    const targetX = mouseX - cw / 2;
+    charX += (targetX - charX) * 0.25;
+    if (charX < 0) charX = 0;
+    if (charX > stageW - cw) charX = stageW - cw;
+    charY = charBaseY;
+  } else if (INTERACTION_MODE === "mouseFollow") {
+    const targetX = mouseX - cw / 2;
+    charX += (targetX - charX) * 0.3;
+    if (charX < 0) charX = 0;
+    if (charX > stageW - cw) charX = stageW - cw;
+    charJumpV += 0.6;
+    charY += charJumpV;
+    if (charY >= charBaseY) { charY = charBaseY; charJumpV = 0; }
+  } else if (CHARACTER_TRACK === "followMouse") {
+    const targetX = mouseX - cw / 2;
+    const targetY = mouseY - ch / 2;
+    charX += (targetX - charX) * 0.12;
+    charY += (targetY - charY) * 0.12;
+  } else if (CHARACTER_TRACK === "leftRight") {
+    charX += charDir * 2.4;
+    if (charX < 10) { charX = 10; charDir = 1; }
+    if (charX > stageW - cw - 10) { charX = stageW - cw - 10; charDir = -1; }
+    charY = charBaseY;
+  } else if (CHARACTER_TRACK === "leftRightJump") {
+    charX += charDir * 2.6;
+    if (charX < 10) { charX = 10; charDir = 1; charJumpV = -10; }
+    if (charX > stageW - cw - 10) { charX = stageW - cw - 10; charDir = -1; charJumpV = -10; }
+    charJumpV += 0.5;
+    charY += charJumpV;
+    if (charY >= charBaseY) { charY = charBaseY; if (Math.random() < 0.02) charJumpV = -10; }
+  } else if (CHARACTER_TRACK === "standbyDash") {
+    const targetX = mouseX - cw / 2;
+    const dx = targetX - charX;
+    if (Math.abs(dx) > 5) charX += dx * 0.25;
+    charY = charBaseY;
+  } else if (CHARACTER_TRACK === "cruise") {
+    charX += charDir * 1.5;
+    if (charX < 10) { charX = 10; charDir = 1; }
+    if (charX > stageW - cw - 10) { charX = stageW - cw - 10; charDir = -1; }
+    charY = charBaseY;
+  } else if (CHARACTER_TRACK === "wave") {
+    charWaveT += 0.04;
+    charX += charDir * 1.8;
+    if (charX < 10) { charX = 10; charDir = 1; }
+    if (charX > stageW - cw - 10) { charX = stageW - cw - 10; charDir = -1; }
+    charY = charBaseY - Math.sin(charWaveT) * 40;
+  } else if (CHARACTER_TRACK === "clickApproach") {
+    charY = charBaseY;
+  } else if (CHARACTER_TRACK === "pathPoints") {
+    const target = pathPoints[pathIdx];
+    const dx = target.x - charX;
+    const dy = target.y - charY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 8) {
+      pathIdx = (pathIdx + 1) % pathPoints.length;
+    } else {
+      charX += (dx / dist) * 2.2;
+      charY += (dy / dist) * 2.2;
+      charDir = dx > 0 ? 1 : -1;
+    }
+  } else if (CHARACTER_TRACK === "physicsBounce") {
+    charX += charDir * 2.5;
+    charY += charVY;
+    if (charX < 10) { charX = 10; charDir = 1; }
+    if (charX > stageW - cw - 10) { charX = stageW - cw - 10; charDir = -1; }
+    if (charY < 130) { charY = 130; charVY = -charVY; }
+    if (charY > charBaseY) { charY = charBaseY; charVY = -Math.abs(charVY) - 0.5; }
+  }
+  character.style.left = charX + "px";
+  character.style.top = charY + "px";
+  character.style.transform = "scaleX(" + (charDir > 0 ? 1 : -1) + ")";
+}
+
+function spawnWord(text, isCorrect, idx, total) {
+  const stageW = gameStage.clientWidth;
+  const stageH = gameStage.clientHeight;
+  const speedCfg = SPEED_MAP[SPEED] || SPEED_MAP.normal;
+  const el = document.createElement("div");
+  el.className = "flying-word";
+  el.textContent = text;
+  wordsLayer.appendChild(el);
+  const rect = el.getBoundingClientRect();
+  const w = rect.width;
+  const h = rect.height;
+  let x, y, vx, vy;
+  let mode = ENTRY_MODE;
+  if (INTERACTION_MODE === "catch") mode = "top";
+  if (INTERACTION_MODE === "connect") mode = "connect";
+  if (mode === "mixed") {
+    const opts = ["left","right","top","bottom","groundUp","growDown"];
+    mode = opts[Math.floor(Math.random() * opts.length)];
+  }
+  const baseV = speedCfg.base + Math.random() * 0.6;
+  const safeTop = 130;
+  const safeBottom = 160;
+  const usableH = Math.max(60, stageH - safeTop - safeBottom);
+  if (mode === "connect") {
+    const rowGap = Math.max(78, h + 26);
+    const row = Math.floor(idx / 2);
+    const isLeftCol = idx % 2 === 0;
+    x = isLeftCol ? 80 : Math.max(80, stageW - w - 80);
+    y = safeTop + 90 + row * rowGap;
+    if (y > stageH - safeBottom - h) y = safeTop + 40 + (idx * 24) % Math.max(80, usableH - h);
+    vx = 0; vy = 0;
+    el.dataset.willStopXY = "0";
+  } else if (mode === "left") {
+    x = -w - 20;
+    y = safeTop + Math.random() * (usableH - h);
+    vx = baseV; vy = 0;
+  } else if (mode === "right") {
+    x = stageW + 20;
+    y = safeTop + Math.random() * (usableH - h);
+    vx = -baseV; vy = 0;
+  } else if (mode === "top") {
+    x = 20 + Math.random() * (stageW - w - 40);
+    y = -h - 20;
+    vx = 0; vy = baseV;
+  } else if (mode === "bottom") {
+    x = 20 + Math.random() * (stageW - w - 40);
+    y = stageH + 20;
+    vx = 0; vy = -baseV;
+  } else if (mode === "toss") {
+    x = 40 + Math.random() * (stageW - w - 80);
+    y = stageH + 30;
+    vx = (Math.random() - 0.5) * 1.2;
+    const gToss = 0.055;
+    const riseDist = (stageH + 30) - 60;
+    const vy0 = Math.sqrt(2 * gToss * riseDist);
+    vy = -(vy0 + 0.3 + Math.random() * 0.4);
+  } else if (mode === "groundUp") {
+    // 横向均分区间，每个单词分配独立X段，错开不重叠
+    const colCount = total;
+    const padding = 30;
+    const areaW = stageW - padding * 2;
+    const cellW = areaW / colCount;
+    // 当前单词所属格子范围
+    const cellStart = padding + idx * cellW;
+    const cellEnd = cellStart + cellW - w;
+    // 在自己格子内随机横坐标
+    x = cellStart + Math.random() * Math.max(0, cellEnd - cellStart);
+    y = stageH + 20;
+    vx = 0;
+    vy = -baseV * 0.8;
+    el.dataset.targetY = (safeTop + Math.random() * usableH);
+    el.dataset.willStop = "1";
+  } else if (mode === "growDown") {
+    // 和groundUp相同横向分栏逻辑
+    const colCount = total;
+    const padding = 30;
+    const areaW = stageW - padding * 2;
+    const cellW = areaW / colCount;
+    const cellStart = padding + idx * cellW;
+    const cellEnd = cellStart + cellW - w;
+    x = cellStart + Math.random() * Math.max(0, cellEnd - cellStart);
+    y = -h - 20;
+    vx = 0;
+    vy = baseV * 0.8;
+    el.dataset.targetY = (safeTop + Math.random() * usableH);
+    el.dataset.willStop = "1";
+  } else if (mode === "lineByLine") {
+    const lineY = safeTop + 40 + idx * (h + 20);
+    x = -w - 20;
+    y = lineY;
+    vx = baseV * 1.5;
+    vy = 0;
+    el.dataset.targetX = (stageW - w) / 2;
+    el.dataset.willStopX = "1";
+  } else if (mode === "scatter") {
+    x = Math.random() * (stageW - w);
+    y = Math.random() * (stageH - h - 200) + safeTop;
+    const cx = (stageW - w) / 2;
+    const cy = (stageH - h) / 2;
+    const colCount = Math.max(2, OPTION_COUNT);
+    const angle = (idx / colCount) * Math.PI * 2;
+    el.dataset.targetX = cx + Math.cos(angle) * 200;
+    el.dataset.targetY = cy + Math.sin(angle) * 120;
+    el.dataset.willStopXY = "1";
+    vx = 0; vy = 0;
+  } else if (mode === "followChar") {
+    const cw2 = character.offsetWidth;
+    x = charX + cw2 / 2 - w / 2 + (Math.random() - 0.5) * 80;
+    y = charY - h - 20 - idx * (h + 8);
+    if (y < safeTop) y = safeTop;
+    vx = 0; vy = 0;
+    el.dataset.followChar = "1";
+    el.dataset.offsetIdx = idx;
+  } else {
+    x = stageW + 20;
+    y = safeTop + Math.random() * (usableH - h);
+    vx = -baseV; vy = 0;
+  }
+  el.style.left = x + "px";
+  el.style.top = y + "px";
+  const word = {
+    el, text, isCorrect,
+    x, y, vx, vy, w, h,
+    sliced: false,
+    bornAt: performance.now(),
+    mode: mode,
+    offsetIdx: idx
+  };
+  el.addEventListener("pointerdown", (e) => {
+    if (INTERACTION_MODE === "click") {
+      e.preventDefault();
+      e.stopPropagation();
+      handlePick(word);
+      return;
+    }
+  });
+  el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (INTERACTION_MODE === "click" || INTERACTION_MODE === "follow" || INTERACTION_MODE === "collide" || INTERACTION_MODE === "swipe" || INTERACTION_MODE === "catch") {
+      handlePick(word);
+    } else if (INTERACTION_MODE === "shoot") {
+      shootAt(word.x + word.w/2, word.y + word.h/2);
+    }
+  });
+  el.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (INTERACTION_MODE === "click") handlePick(word);
+  }, { passive: false });
+  if (INTERACTION_MODE === "drag") setupDragWord(word);
+  if (INTERACTION_MODE === "connect") setupConnectWord(word);
+  return word;
+}
+
+function loadQuestion() {
+  const q = QUESTIONS[gameState.current];
+  if (!q) { endGame(); return; }
+  gameState.answered = false;
+  gameState.flyingWords.forEach(w => { try { w.el.remove(); } catch(e) {} });
+  gameState.flyingWords = [];
+  stemText.textContent = q.stem;
+  qNumEl.textContent = gameState.current + 1;
+  const distractorTotal = Math.max(1, OPTION_COUNT - 1);
+  const pool = (ALL_WORDS || []).filter(w => w && w.toLowerCase() !== String(q.correct).toLowerCase());
+  const shuffled = pool.slice().sort(() => Math.random() - 0.5);
+  const distractors = [];
+  if (q.distractor && /^[A-Za-z]/.test(q.distractor)) distractors.push(q.distractor);
+  for (const w of shuffled) {
+    if (distractors.length >= distractorTotal) break;
+    if (!distractors.some(d => d.toLowerCase() === w.toLowerCase())) distractors.push(w);
+  }
+  while (distractors.length < distractorTotal) distractors.push("option" + distractors.length);
+  const all = [{ text: q.correct, isCorrect: true }];
+  for (let i = 0; i < distractorTotal; i++) all.push({ text: distractors[i], isCorrect: false });
+  for (let i = all.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = all[i]; all[i] = all[j]; all[j] = t;
+  }
+  all.forEach((item, idx) => {
+    setTimeout(() => {
+      if (gameState.current >= QUESTIONS.length) return;
+      gameState.flyingWords.push(spawnWord(item.text, item.isCorrect, idx, all.length));
+    }, 200 + idx * 320);
+  });
+}
+
+function applySuccessFx(word) {
+  if (SUCCESS_FX === "glow") word.el.classList.add("correct-glow");
+  else if (SUCCESS_FX === "bounce") word.el.animate([{transform:"scale(1)"},{transform:"scale(1.4)"},{transform:"scale(1)"}], 500);
+  else if (SUCCESS_FX === "float") spawnScorePop("✨ 正确！", word.x + word.w/2, word.y, "#28a96b");
+  else if (SUCCESS_FX === "star") {
+    for (let i = 0; i < 8; i++) {
+      const s = document.createElement("div");
+      s.textContent = "⭐";
+      s.style.cssText = "position:absolute;left:" + (word.x + word.w/2) + "px;top:" + (word.y + word.h/2) + "px;font-size:24px;z-index:46;pointer-events:none;";
+      gameStage.appendChild(s);
+      const ang = (i / 8) * Math.PI * 2;
+      s.animate([
+        { transform: "translate(0,0) scale(1)", opacity: 1 },
+        { transform: "translate(" + Math.cos(ang)*80 + "px," + Math.sin(ang)*80 + "px) scale(.3)", opacity: 0 }
+      ], { duration: 800 });
+      setTimeout(() => { try { s.remove(); } catch(e) {} }, 800);
+    }
+  } else if (SUCCESS_FX === "confetti") {
+    const colors = ["#ff6b6b","#fff06a","#78d86f","#35d5ee","#b794f4","#ff9b62"];
+    for (let i = 0; i < 30; i++) {
+      const p = document.createElement("div");
+      p.className = "confetti-piece";
+      p.style.background = colors[i % colors.length];
+      p.style.left = (word.x + word.w/2) + "px";
+      p.style.top = (word.y + word.h/2) + "px";
+      gameStage.appendChild(p);
+      const ang = Math.random() * Math.PI * 2;
+      const dist = 80 + Math.random() * 120;
+      p.animate([
+        { transform: "translate(0,0) rotate(0)", opacity: 1 },
+        { transform: "translate(" + Math.cos(ang)*dist + "px," + (Math.sin(ang)*dist + 100) + "px) rotate(" + (Math.random()*720) + "deg)", opacity: 0 }
+      ], { duration: 1500, easing: "ease-out" });
+      setTimeout(() => { try { p.remove(); } catch(e) {} }, 1500);
+    }
+  } else if (SUCCESS_FX === "coin") {
+    playTone(880, 0.06, "square", 0.18);
+    for (let i = 0; i < 10; i++) {
+      const c = document.createElement("div");
+      c.className = "coin-piece";
+      c.textContent = "🪙";
+      c.style.left = (word.x + word.w/2 + (Math.random() - 0.5) * 60) + "px";
+      c.style.top = (word.y) + "px";
+      gameStage.appendChild(c);
+      c.animate([
+        { transform: "translateY(0) rotate(0)", opacity: 1 },
+        { transform: "translateY(" + (300 + Math.random() * 100) + "px) rotate(720deg)", opacity: 0 }
+      ], { duration: 1200, easing: "ease-in" });
+      setTimeout(() => { try { c.remove(); } catch(e) {} }, 1200);
+    }
+  } else if (SUCCESS_FX === "cheer") {
+    if (CHARACTER_EMOTE === "on") {
+      character.classList.add("cheer");
+      setTimeout(() => character.classList.remove("cheer"), 600);
+    }
+    spawnScorePop("🎉 棒!", word.x + word.w/2, word.y, "#28a96b");
+  }
+  if (CHARACTER_EMOTE === "on" && SUCCESS_FX !== "cheer") {
+    character.classList.add("cheer");
+    setTimeout(() => character.classList.remove("cheer"), 600);
+  }
+}
+
+function applyErrorFx(word) {
+  if (ERROR_FX === "shake") {
+    word.el.classList.add("error-shake");
+    gameStage.animate([{transform:"translateX(0)"},{transform:"translateX(-8px)"},{transform:"translateX(8px)"},{transform:"translateX(0)"}], 300);
+  } else if (ERROR_FX === "red") {
+    word.el.classList.add("error-red");
+  } else if (ERROR_FX === "back") {
+    word.el.animate([{transform:"scale(1)"},{transform:"scale(.7)"},{transform:"scale(1)"}], 300);
+  } else if (ERROR_FX === "gray") {
+    grayOverlay.classList.add("show");
+    setTimeout(() => grayOverlay.classList.remove("show"), 500);
+  } else if (ERROR_FX === "faint") {
+    if (CHARACTER_EMOTE === "on") {
+      character.classList.add("faint");
+      setTimeout(() => character.classList.remove("faint"), 800);
+    }
+  } else if (ERROR_FX === "regret") {
+    playTone(220, 0.2, "sine", 0.15);
+    setTimeout(() => playTone(180, 0.3, "sine", 0.12), 150);
+  }
+  if (CHARACTER_EMOTE === "on" && ERROR_FX !== "faint") {
+    character.classList.add("sad");
+    setTimeout(() => character.classList.remove("sad"), 600);
+  }
+}
+
+function handlePick(word) {
+  if (word.sliced || gameState.answered) return;
+  word.sliced = true;
+  const sliceAngle = (typeof word._sliceAngle === "number") ? word._sliceAngle : 0;
+  if (word.isCorrect) {
+    playTone(880, 0.08, "square", 0.18);
+    setTimeout(() => playTone(1318, 0.12, "square", 0.18), 80);
+    gameState.correctCount++;
+    gameState.score += 10;
+    updateScore();
+    GROWTH_API.update(true);
+    if (INTERACTION_MODE === "swipe") {
+      spawnSliceFlash(word.x + word.w/2, word.y + word.h/2, true);
+      spawnSliceHalves(word, sliceAngle);
+      try { word.el.style.display = "none"; } catch(e) {}
+    }
+    applySuccessFx(word);
+    spawnScorePop("+10", word.x + word.w/2, word.y + word.h/2, "#28a96b");
+    showFeedback("✅ 正确！" + word.text, true);
+    setTimeout(() => { try { word.el.remove(); } catch(e) {} }, 500);
+    gameState.flyingWords = gameState.flyingWords.filter(w => w !== word);
+    handleAnswerEnd(true);
+  } else {
+    playTone(180, 0.2, "sawtooth", 0.18);
+    gameState.score = Math.max(0, gameState.score - 5);
+    gameState.wrongCount++;
+    updateScore();
+    GROWTH_API.update(false);
+    if (INTERACTION_MODE === "swipe") {
+      spawnSliceFlash(word.x + word.w/2, word.y + word.h/2, false);
+      spawnSliceHalves(word, sliceAngle);
+      try { word.el.style.display = "none"; } catch(e) {}
+      setTimeout(() => { try { word.el.remove(); } catch(e) {} }, 500);
+      gameState.flyingWords = gameState.flyingWords.filter(w => w !== word);
+    } else {
+      setTimeout(() => {
+        word.sliced = false;
+        word.el.classList.remove("error-shake","error-red");
+      }, 600);
+    }
+    applyErrorFx(word);
+    spawnScorePop("-5", word.x + word.w/2, word.y + word.h/2, "#ef4e32");
+    showFeedback("❌ 不对哦", false);
+  }
+}
+
+function handleAnswerEnd(correct) {
+  if (gameState.answered) return;
+  gameState.answered = true;
+  const q = QUESTIONS[gameState.current];
+  gameState.results.push({ stem: q.stem, correct: q.correct, isCorrect: correct });
+  setTimeout(() => {
+    gameState.flyingWords.forEach(w => { try { w.el.remove(); } catch(e) {} });
+    gameState.flyingWords = [];
+    feedbackEl.classList.remove("show");
+    gameState.current++;
+    if (gameState.current >= QUESTIONS.length) endGame();
+    else loadQuestion();
+  }, 1200);
+}
+
+function spawnScorePop(text, x, y, color) {
+  const pop = document.createElement("div");
+  pop.className = "score-pop";
+  pop.textContent = text;
+  pop.style.left = (x - 30) + "px";
+  pop.style.top = (y - 20) + "px";
+  pop.style.color = color || "#28a96b";
+  gameStage.appendChild(pop);
+  setTimeout(() => { try { pop.remove(); } catch(e) {} }, 1300);
+}
+
+function updateScore() {
+  scoreValEl.textContent = gameState.score;
+  const total = gameState.correctCount + gameState.wrongCount;
+  const acc = total > 0 ? Math.round((gameState.correctCount / Math.max(QUESTIONS.length, total)) * 100) : 0;
+  accValEl.textContent = acc + "%";
+}
+
+function showFeedback(msg, isCorrect) {
+  feedbackEl.textContent = msg;
+  feedbackEl.style.background = isCorrect ? "linear-gradient(135deg,#28a96b,#08a6cf)" : "linear-gradient(135deg,#ef4e32,#dc2626)";
+  feedbackEl.classList.add("show");
+}
+
+function checkCharacterCollision() {
+  if (INTERACTION_MODE !== "collide" && INTERACTION_MODE !== "follow" && INTERACTION_MODE !== "catch") return;
+  const cw = character.offsetWidth;
+  const ch = character.offsetHeight;
+  const cx = charX + cw/2;
+  const cy = charY + ch/2;
+  for (const w of gameState.flyingWords.slice()) {
+    if (w.sliced) continue;
+    const wx = w.x + w.w/2;
+    const wy = w.y + w.h/2;
+    const dx = cx - wx;
+    const dy = cy - wy;
+    const threshold = INTERACTION_MODE === "follow" ? 50 : 40;
+    if (Math.sqrt(dx*dx + dy*dy) < threshold + Math.min(cw,ch)/3) {
+      handlePick(w);
+      break;
+    }
+  }
+}
+
+function gameLoop() {
+  const stageW = gameStage.clientWidth;
+  const stageH = gameStage.clientHeight;
+  const now = performance.now();
+  const speedCfg = SPEED_MAP[SPEED] || SPEED_MAP.normal;
+  gameState.flyingWords = gameState.flyingWords.filter(w => {
+    if (w.sliced && !w.el.parentNode) return false;
+    if (w.sliced) return true;
+    if (w.el.dataset.willStop === "1") {
+      const targetY = parseFloat(w.el.dataset.targetY);
+      w.y += w.vy;
+      if ((w.vy < 0 && w.y <= targetY) || (w.vy > 0 && w.y >= targetY)) {
+        w.y = targetY; w.vy = 0; w.el.dataset.willStop = "0";
+      }
+    } else if (w.el.dataset.willStopX === "1") {
+      const targetX = parseFloat(w.el.dataset.targetX);
+      w.x += w.vx;
+      if ((w.vx > 0 && w.x >= targetX) || (w.vx < 0 && w.x <= targetX)) {
+        w.x = targetX; w.vx = 0; w.el.dataset.willStopX = "0";
+      }
+    } else if (w.el.dataset.willStopXY === "1") {
+      const targetX = parseFloat(w.el.dataset.targetX);
+      const targetY = parseFloat(w.el.dataset.targetY);
+      w.x += (targetX - w.x) * 0.15;
+      w.y += (targetY - w.y) * 0.15;
+      if (Math.abs(targetX - w.x) < 1 && Math.abs(targetY - w.y) < 1) {
+        w.x = targetX; w.y = targetY; w.el.dataset.willStopXY = "0";
+      }
+    } else if (w.el.dataset.followChar === "1") {
+      const cw = character.offsetWidth;
+      const targetX = charX + cw/2 - w.w/2 + (w.offsetIdx - 1) * (w.w + 10);
+      const targetY = charY - w.h - 20;
+      w.x += (targetX - w.x) * 0.12;
+      w.y += (targetY - w.y) * 0.12;
+    } else {
+      w.x += w.vx;
+      w.y += w.vy;
+      if (w.mode === "toss") w.vy += 0.055;
+    }
+    w.el.style.left = w.x + "px";
+    w.el.style.top = w.y + "px";
+    const age = now - w.bornAt;
+    if (age > speedCfg.lifespan && !w.el.dataset.followChar && !w.el.dataset.willStopXY) {
+      try { w.el.remove(); } catch(e) {}
+      if (w.isCorrect && !gameState.answered) {
+        showFeedback("⏰ 漏过：" + w.text, false);
+        gameState.wrongCount++;
+        updateScore();
+        GROWTH_API.update(false);
+        handleAnswerEnd(false);
+      }
+      return false;
+    }
+    if (w.x < -400 || w.x > stageW + 400 || w.y < -400 || w.y > stageH + 400) {
+      try { w.el.remove(); } catch(e) {}
+      return false;
+    }
+    return true;
+  });
+  updateCharacter();
+  checkCharacterCollision();
+  gameState.rafId = requestAnimationFrame(gameLoop);
+}
+
+gameStage.addEventListener("mousemove", (e) => {
+  const r = gameStage.getBoundingClientRect();
+  mouseX = e.clientX - r.left;
+  mouseY = e.clientY - r.top;
+});
+gameStage.addEventListener("touchmove", (e) => {
+  if (!e.touches[0]) return;
+  const r = gameStage.getBoundingClientRect();
+  mouseX = e.touches[0].clientX - r.left;
+  mouseY = e.touches[0].clientY - r.top;
+}, { passive: true });
+
+let swipeActive = false;
+let swipeLast = null;
+let swipePoints = [];
+const sliceTrailSvg = document.getElementById("sliceTrail");
+function addTrailSegment(x1, y1, x2, y2) {
+  if (!sliceTrailSvg) return;
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("x1", x1); line.setAttribute("y1", y1);
+  line.setAttribute("x2", x2); line.setAttribute("y2", y2);
+  line.setAttribute("stroke", "url(#trailGrad)");
+  line.setAttribute("stroke-width", "10");
+  line.setAttribute("stroke-linecap", "round");
+  line.style.filter = "drop-shadow(0 0 8px rgba(255,255,255,.9)) drop-shadow(0 0 16px " + THEME_ACCENT + ")";
+  sliceTrailSvg.appendChild(line);
+  const start = performance.now();
+  const dur = 450;
+  const tick = () => {
+    const t = (performance.now() - start) / dur;
+    if (t >= 1) { try { line.remove(); } catch(e) {} return; }
+    line.style.opacity = String(1 - t);
+    line.setAttribute("stroke-width", String(10 * (1 - t * 0.6)));
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function spawnSliceFlash(x, y, isCorrect) {
+  const flash = document.createElement("div");
+  flash.className = "slice-flash";
+  const size = 140;
+  flash.style.left = (x - size/2) + "px";
+  flash.style.top = (y - size/2) + "px";
+  flash.style.width = size + "px";
+  flash.style.height = size + "px";
+  gameStage.appendChild(flash);
+  flash.animate([
+    { transform: "scale(.3)", opacity: 1 },
+    { transform: "scale(1.6)", opacity: 0 }
+  ], { duration: 420, easing: "ease-out" });
+  setTimeout(() => { try { flash.remove(); } catch(e) {} }, 450);
+  const colors = isCorrect ? ["#28a96b","#78d86f","#fff06a","#35d5ee"] : ["#ef4e32","#ff7b54","#dc2626"];
+  for (let i = 0; i < 14; i++) {
+    const drop = document.createElement("div");
+    drop.className = "juice-drop";
+    const ds = 8 + Math.random() * 10;
+    drop.style.width = ds + "px"; drop.style.height = ds + "px";
+    drop.style.left = (x - ds/2) + "px"; drop.style.top = (y - ds/2) + "px";
+    drop.style.background = colors[i % colors.length];
+    gameStage.appendChild(drop);
+    const ang = Math.random() * Math.PI * 2;
+    const dist = 60 + Math.random() * 90;
+    drop.animate([
+      { transform: "translate(0,0) scale(1)", opacity: 1 },
+      { transform: "translate(" + Math.cos(ang)*dist + "px," + (Math.sin(ang)*dist + 60) + "px) scale(.3)", opacity: 0 }
+    ], { duration: 700 + Math.random()*300, easing: "ease-out" });
+    setTimeout(() => { try { drop.remove(); } catch(e) {} }, 1100);
+  }
+}
+function spawnSliceHalves(word, angle) {
+  const dirX = Math.cos(angle + Math.PI/2);
+  const dirY = Math.sin(angle + Math.PI/2);
+  const deg = (angle * 180 / Math.PI);
+  for (let side = 0; side < 2; side++) {
+    const half = document.createElement("div");
+    half.className = "slice-half";
+    half.textContent = word.text;
+    half.style.left = word.x + "px";
+    half.style.top = word.y + "px";
+    half.style.width = word.w + "px";
+    half.style.height = word.h + "px";
+    half.style.display = "flex";
+    half.style.alignItems = "center";
+    half.style.justifyContent = "center";
+    half.style.filter = "drop-shadow(0 0 8px rgba(255,255,255,.9))";
+    const sign = side === 0 ? 1 : -1;
+    half.style.clipPath = side === 0
+      ? "polygon(0 0, 100% 0, 92% 58%, 8% 42%)"
+      : "polygon(8% 42%, 92% 58%, 100% 100%, 0 100%)";
+    half.style.transform = "rotate(" + deg + "deg) translate(0,0) scale(1)";
+    half.style.transformOrigin = "center center";
+    gameStage.appendChild(half);
+    const burstX = dirX * sign * (95 + Math.random()*55);
+    const burstY = dirY * sign * (50 + Math.random()*45);
+    const fallX = burstX + sign * (35 + Math.random()*55);
+    const fallY = burstY + 300 + Math.random()*120;
+    const rotMid = deg + sign * (18 + Math.random()*22);
+    const rotEnd = deg + sign * (95 + Math.random()*80);
+    half.animate([
+      { transform: "rotate(" + deg + "deg) translate(0,0) scale(1)", opacity: 1, filter: "brightness(1.3)" },
+      { transform: "rotate(" + rotMid + "deg) translate(" + burstX + "px," + burstY + "px) scale(1.06)", opacity: 1, filter: "brightness(1.15)" },
+      { transform: "rotate(" + rotEnd + "deg) translate(" + fallX + "px," + fallY + "px) scale(.88)", opacity: 0, filter: "brightness(.85)" }
+    ], { duration: 1250, easing: "cubic-bezier(.18,.78,.32,1)" });
+    setTimeout(() => { try { half.remove(); } catch(e) {} }, 1300);
+  }
+}
+function pointLineDistance(px, py, ax, ay, bx, by) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const len2 = dx * dx + dy * dy || 1;
+  let t = ((px - ax) * dx + (py - ay) * dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  const x = ax + t * dx;
+  const y = ay + t * dy;
+  return Math.sqrt((px - x) * (px - x) + (py - y) * (py - y));
+}
+function segmentIntersectsRect(x1, y1, x2, y2, left, top, right, bottom) {
+  const minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
+  const minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
+  if (maxX < left || minX > right || maxY < top || minY > bottom) return false;
+  if ((x1 >= left && x1 <= right && y1 >= top && y1 <= bottom) || (x2 >= left && x2 <= right && y2 >= top && y2 <= bottom)) return true;
+  const cross = (ax, ay, bx, by, cx, cy) => (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+  const hitSeg = (ax, ay, bx, by, cx, cy, dx, dy) => {
+    const c1 = cross(ax, ay, bx, by, cx, cy);
+    const c2 = cross(ax, ay, bx, by, dx, dy);
+    const c3 = cross(cx, cy, dx, dy, ax, ay);
+    const c4 = cross(cx, cy, dx, dy, bx, by);
+    return c1 * c2 <= 0 && c3 * c4 <= 0;
+  };
+  return hitSeg(x1,y1,x2,y2,left,top,right,top) || hitSeg(x1,y1,x2,y2,right,top,right,bottom) || hitSeg(x1,y1,x2,y2,right,bottom,left,bottom) || hitSeg(x1,y1,x2,y2,left,bottom,left,top);
+}
+function showCutLine(x1, y1, x2, y2, word) {
+  const cx = word.x + word.w / 2;
+  const cy = word.y + word.h / 2;
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const len = Math.max(word.w + 90, Math.hypot(x2 - x1, y2 - y1) + 60);
+  const line = document.createElement("div");
+  line.className = "slice-cut-line";
+  line.style.width = len + "px";
+  line.style.left = (cx - len / 2) + "px";
+  line.style.top = (cy - 3) + "px";
+  line.style.transform = "rotate(" + angle + "rad) scaleX(.35)";
+  gameStage.appendChild(line);
+  line.animate([
+    { transform: "rotate(" + angle + "rad) scaleX(.35)", opacity: 0.2 },
+    { transform: "rotate(" + angle + "rad) scaleX(1.25)", opacity: 1 },
+    { transform: "rotate(" + angle + "rad) scaleX(1.45)", opacity: 0 }
+  ], { duration: 360, easing: "ease-out" });
+  setTimeout(() => { try { line.remove(); } catch(e) {} }, 390);
+}
+function trySwipePick(x1, y1, x2, y2) {
+  if (INTERACTION_MODE !== "swipe") return;
+  const segLen = Math.hypot(x2 - x1, y2 - y1);
+  if (segLen < 2) return;
+  for (const w of gameState.flyingWords.slice()) {
+    if (w.sliced) continue;
+    const cx = w.x + w.w / 2;
+    const cy = w.y + w.h / 2;
+    const centerBand = Math.max(34, Math.min(w.w, w.h) * 0.72);
+    const coreLeft = w.x + w.w * 0.18;
+    const coreRight = w.x + w.w * 0.82;
+    const coreTop = w.y + w.h * 0.18;
+    const coreBottom = w.y + w.h * 0.82;
+    const nearCenter = pointLineDistance(cx, cy, x1, y1, x2, y2) <= centerBand;
+    const throughCore = segmentIntersectsRect(x1, y1, x2, y2, coreLeft, coreTop, coreRight, coreBottom);
+    if (nearCenter && throughCore) {
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      w._sliceAngle = angle;
+      showCutLine(x1, y1, x2, y2, w);
+      handlePick(w);
+    }
+  }
+}
+let bladeSpark = null;
+function ensureBladeSpark() {
+  if (!bladeSpark) {
+    bladeSpark = document.createElement("div");
+    bladeSpark.className = "blade-spark";
+    gameStage.appendChild(bladeSpark);
+  }
+  return bladeSpark;
+}
+function moveBladeSpark(x, y, visible) {
+  if (INTERACTION_MODE !== "swipe") return;
+  const spark = ensureBladeSpark();
+  spark.style.left = x + "px";
+  spark.style.top = y + "px";
+  spark.style.opacity = visible ? "1" : "0";
+  spark.style.transform = visible ? "scale(1)" : "scale(.65)";
+}
+function shootAt(tx, ty) {
+  const cw = character.offsetWidth || 0, ch = character.offsetHeight || 0;
+  const hiddenChar = !cw || !ch || getComputedStyle(character).display === "none";
+  const sx = hiddenChar ? gameStage.clientWidth / 2 : charX + cw/2;
+  const sy = hiddenChar ? gameStage.clientHeight - 36 : charY + ch/2;
+  const bullet = document.createElement("div");
+  bullet.style.cssText = "position:absolute;z-index:47;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle,#fff,#fff06a 50%," + THEME_ACCENT + ");box-shadow:0 0 12px #fff,0 0 24px " + THEME_ACCENT + ";pointer-events:none;left:" + (sx-8) + "px;top:" + (sy-8) + "px;";
+  gameStage.appendChild(bullet);
+  playTone(880, 0.06, "square", 0.15);
+  const dx = tx - sx, dy = ty - sy;
+  const dur = Math.min(600, Math.max(200, Math.hypot(dx,dy) * 1.5));
+  bullet.animate([
+    { transform: "translate(0,0)", opacity: 1 },
+    { transform: "translate(" + dx + "px," + dy + "px)", opacity: 1 }
+  ], { duration: dur, easing: "linear" });
+  setTimeout(() => {
+    try { bullet.remove(); } catch(e) {}
+    let hit = null, best = 9999;
+    for (const w of gameState.flyingWords) {
+      if (w.sliced) continue;
+      const wx = w.x + w.w/2, wy = w.y + w.h/2;
+      const d = Math.hypot(wx - tx, wy - ty);
+      if (d < 60 && d < best) { best = d; hit = w; }
+    }
+    if (hit) handlePick(hit);
+  }, dur);
+}
+function setupDragWord(word) {
+  word.el.style.cursor = "grab";
+  let dragging = false, offX = 0, offY = 0;
+  const onDown = (e) => {
+    if (word.sliced) return;
+    dragging = true;
+    const r = gameStage.getBoundingClientRect();
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+    offX = cx - word.x; offY = cy - word.y;
+    word.el.style.cursor = "grabbing";
+    word.el.style.zIndex = "50";
+    e.preventDefault(); e.stopPropagation();
+  };
+  const onMove = (e) => {
+    if (!dragging) return;
+    const r = gameStage.getBoundingClientRect();
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+    word.x = cx - offX; word.y = cy - offY;
+    word.vx = 0; word.vy = 0;
+    word.el.dataset.willStop = "0"; word.el.dataset.willStopX = "0"; word.el.dataset.willStopXY = "0";
+    word.el.style.left = word.x + "px"; word.el.style.top = word.y + "px";
+    e.preventDefault();
+  };
+  const onUp = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    word.el.style.cursor = "grab";
+    const basket = document.getElementById("dragBasket");
+    if (basket) {
+      const br = basket.getBoundingClientRect();
+      const sr = gameStage.getBoundingClientRect();
+      const bl = br.left - sr.left, bt = br.top - sr.top;
+      const cx2 = word.x + word.w/2, cy2 = word.y + word.h/2;
+      if (cx2 >= bl && cx2 <= bl + br.width && cy2 >= bt && cy2 <= bt + br.height) {
+        handlePick(word);
+      }
+    }
+  };
+  word.el.addEventListener("mousedown", onDown);
+  word.el.addEventListener("touchstart", onDown, { passive: false });
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("touchmove", onMove, { passive: false });
+  window.addEventListener("mouseup", onUp);
+  window.addEventListener("touchend", onUp);
+}
+let connectFirst = null;
+function setupConnectWord(word) {
+  word.el.style.cursor = "pointer";
+  word.el.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (word.sliced) return;
+    if (!connectFirst) {
+      connectFirst = word;
+      word.el.style.outline = "4px solid " + THEME_ACCENT;
+    } else if (connectFirst === word) {
+      connectFirst.el.style.outline = "";
+      connectFirst = null;
+    } else {
+      const a = connectFirst, b = word;
+      a.el.style.outline = ""; 
+      connectFirst = null;
+      const line = document.createElement("div");
+      const ax = a.x + a.w/2, ay = a.y + a.h/2;
+      const bx = b.x + b.w/2, by = b.y + b.h/2;
+      const len = Math.hypot(bx-ax, by-ay);
+      const ang = Math.atan2(by-ay, bx-ax);
+      line.style.cssText = "position:absolute;z-index:46;height:5px;background:linear-gradient(90deg,#fff," + THEME_ACCENT + ");box-shadow:0 0 10px " + THEME_ACCENT + ";pointer-events:none;left:" + ax + "px;top:" + (ay-2) + "px;width:" + len + "px;transform-origin:left center;transform:rotate(" + ang + "rad);";
+      gameStage.appendChild(line);
+      setTimeout(() => { try { line.remove(); } catch(e) {} }, 800);
+      const correctOne = a.isCorrect ? a : (b.isCorrect ? b : null);
+      if (correctOne) handlePick(correctOne);
+      else { handlePick(a); }
+    }
+  });
+}
+gameStage.addEventListener("click", (e) => {
+  if (INTERACTION_MODE === "shoot") {
+    if (e.target.classList && e.target.classList.contains("flying-word")) return;
+    const r = gameStage.getBoundingClientRect();
+    shootAt(e.clientX - r.left, e.clientY - r.top);
+    return;
+  }
+  if (INTERACTION_MODE === "mouseFollow") {
+    const isShift = e.shiftKey || e.ctrlKey || e.metaKey;
+    charJumpV = isShift ? -16 : -9;
+    playTone(isShift ? 660 : 520, 0.06, "triangle", 0.15);
+    if (e.target.classList && e.target.classList.contains("flying-word")) return;
+  }
+});
+gameStage.addEventListener("pointerdown", (e) => {
+  const r = gameStage.getBoundingClientRect();
+  swipeActive = true;
+  swipeLast = { x: e.clientX - r.left, y: e.clientY - r.top };
+  swipePoints = [swipeLast];
+  mouseX = swipeLast.x;
+  mouseY = swipeLast.y;
+  if (INTERACTION_MODE === "swipe") {
+    e.preventDefault();
+    moveBladeSpark(swipeLast.x, swipeLast.y, true);
+    playTone(1200, 0.035, "triangle", 0.07);
+  }
+  try { gameStage.setPointerCapture(e.pointerId); } catch(err) {}
+});
+gameStage.addEventListener("pointermove", (e) => {
+  const r = gameStage.getBoundingClientRect();
+  const p = { x: e.clientX - r.left, y: e.clientY - r.top };
+  mouseX = p.x;
+  mouseY = p.y;
+  if (INTERACTION_MODE === "swipe") moveBladeSpark(p.x, p.y, swipeActive);
+  if (swipeActive && swipeLast) {
+    const dx = p.x - swipeLast.x;
+    const dy = p.y - swipeLast.y;
+    if (dx*dx + dy*dy >= 4) {
+      if (INTERACTION_MODE === "swipe") {
+        e.preventDefault();
+        addTrailSegment(swipeLast.x, swipeLast.y, p.x, p.y);
+      }
+      trySwipePick(swipeLast.x, swipeLast.y, p.x, p.y);
+      swipeLast = p;
+      swipePoints.push(p);
+      if (swipePoints.length > 10) swipePoints.shift();
+    }
+  }
+}, { passive: false });
+function finishSwipe() {
+  swipeActive = false;
+  swipeLast = null;
+  swipePoints = [];
+  moveBladeSpark(mouseX, mouseY, false);
+}
+window.addEventListener("pointerup", finishSwipe);
+window.addEventListener("pointercancel", finishSwipe);
+
+function setupDynamicBg() {
+  if (!DYNAMIC_BG) return;
+  const cvs = document.getElementById("dynamicBgCanvas");
+  if (!cvs) return;
+  const fit = () => { cvs.width = window.innerWidth; cvs.height = window.innerHeight; };
+  fit();
+  window.addEventListener("resize", fit);
+  const ctx = cvs.getContext("2d");
+  const parts = [];
+  for (let i = 0; i < 40; i++) {
+    parts.push({
+      x: Math.random() * cvs.width,
+      y: Math.random() * cvs.height,
+      r: 2 + Math.random() * 4,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: -0.2 - Math.random() * 0.8,
+      a: 0.3 + Math.random() * 0.4
+    });
+  }
+  const tick = () => {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.y < -10) { p.y = cvs.height + 10; p.x = Math.random() * cvs.width; }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,255,255," + p.a + ")";
+      ctx.fill();
+    });
+    requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+function startGame() {
+  document.getElementById("startScreen").classList.add("hidden");
+  document.getElementById("endScreen").classList.add("hidden");
+  gameState.current = 0;
+  gameState.score = 0;
+  gameState.correctCount = 0;
+  gameState.wrongCount = 0;
+  gameState.results = [];
+  gameState.growthLevel = 0;
+  GROWTH_API.reset();
+  updateScore();
+  initCharacter();
+  loadQuestion();
+  if (!gameState.rafId) gameLoop();
+  if (BGM_STRATEGY !== "off") { gameState.bgmOn = true; startBgm(); }
+}
+
+function endGame() {
+  if (gameState.rafId) { cancelAnimationFrame(gameState.rafId); gameState.rafId = null; }
+  gameState.flyingWords.forEach(w => { try { w.el.remove(); } catch(e) {} });
+  gameState.flyingWords = [];
+  const acc = Math.round((gameState.correctCount / Math.max(1, QUESTIONS.length)) * 100);
+  document.getElementById("finalScore").textContent = gameState.score;
+  document.getElementById("finalAcc").textContent = acc + "%";
+  let stars = 1;
+  if (gameState.correctCount === QUESTIONS.length) stars = 3;
+  else if (gameState.correctCount >= QUESTIONS.length - 1) stars = 2;
+  const starsRow = document.getElementById("starsRow");
+  starsRow.innerHTML = "";
+  for (let i = 0; i < 3; i++) {
+    const s = document.createElement("span");
+    s.textContent = i < stars ? "⭐" : "☆";
+    starsRow.appendChild(s);
+  }
+  document.getElementById("endScreen").classList.remove("hidden");
+  if (END_FX === "fanfare") {
+    playTone(523, 0.15, "square", 0.2);
+    setTimeout(() => playTone(659, 0.15, "square", 0.2), 150);
+    setTimeout(() => playTone(784, 0.3, "square", 0.2), 300);
+  } else if (END_FX === "chime") {
+    playTone(1047, 0.2, "sine", 0.15);
+    setTimeout(() => playTone(1318, 0.3, "sine", 0.15), 200);
+  }
+  stopBgm();
+}
+
+const btnStart = document.getElementById("btnStart");
+if (btnStart) btnStart.addEventListener("click", startGame);
+document.getElementById("btnReplay").addEventListener("click", startGame);
+document.getElementById("btnAgain").addEventListener("click", startGame);
+document.getElementById("btnSound").addEventListener("click", (e) => {
+  gameState.soundOn = !gameState.soundOn;
+  e.currentTarget.textContent = gameState.soundOn ? "🔊 音效" : "🔇 静音";
+});
+document.getElementById("btnBgm").addEventListener("click", (e) => {
+  gameState.bgmOn = !gameState.bgmOn;
+  e.currentTarget.textContent = gameState.bgmOn ? "🎵 BGM" : "🔕 关";
+  if (gameState.bgmOn) startBgm(); else stopBgm();
+});
+document.getElementById("bgmVolume").addEventListener("input", (e) => {
+  setBgmVolume(parseInt(e.target.value) / 100);
+});
+
+window.addEventListener("load", () => {
+  setupDynamicBg();
+  setTimeout(() => {
+    initCharacter();
+    if (OPENING_GUIDE === "off") startGame();
+    if (BGM_STRATEGY === "auto" && OPENING_GUIDE === "off") { gameState.bgmOn = true; startBgm(); }
+  }, 100);
+});
+</script>
+ </body>
+</html>
