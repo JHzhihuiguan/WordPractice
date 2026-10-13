@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单词消消乐</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #fffacd, #f0e68c);
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            color: #ff6b35;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            margin: 20px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            max-width: 600px;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .game-container {
+            width: 90%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            margin: 40px 0;
+            padding: 20px;
+            align-items: center;
+        }
+
+        .en-bubble {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            user-select: none;
+        }
+
+        .option-wrap {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .bubble {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            position: relative;
+            user-select: none;
+        }
+
+        .bubble:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+
+        /* 爆炸动画 */
+        @keyframes boom {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.8); opacity: 0.6; background: red; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        .boom {
+            animation: boom 0.5s forwards;
+        }
+
+        .success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .success-content {
+            background: linear-gradient(135deg, #fffacd, #f0e68c);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border: 3px solid #ff6b35;
+            max-width: 90%;
+            width: 400px;
+        }
+
+        .success-title {
+            font-size: 2rem;
+            color: #ff6b35;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .continue-btn {
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        /* 答错gif弹窗 */
+        /* 答错GIF弹窗 修复版 */
+.error-gif {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    z-index: 10000; /* 最高层级 */
+    display: none;
+    pointer-events: none;
+}
+    </style>
+</head>
+<body>
+    <h1 class="title">🎮 单词消消乐 🎮</h1>
+    <div class="game-info">
+        <div>⏰ 用时: <span id="timer">00:00</span></div>
+        <div>🎯 剩余: <span id="progress">0</span></div>
+    </div>
+
+    <div class="game-container">
+        <div class="en-bubble" id="enWord"></div>
+        <div class="option-wrap" id="optionBox"></div>
+    </div>
+
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <div class="success-title">🎉 全部通关！</div>
+            <button class="continue-btn" onclick="resetAll()">重新开始</button>
+        </div>
+    </div>
+
+    <audio id="bgMusic" src="jcldxt.mp3" loop />
+    <audio id="boomSound" src="error.m4a" />
+    <audio id="winSound" src="end.m4a" />
+    <audio id="okSound" src="ok.mp3" />
+    <audio id="ok1" src="ok1.m4a" />
+    <audio id="ok2" src="ok2.m4a" />
+    <audio id="ok3" src="ok3.m4a" />
+
+    <img class="error-gif" id="errorGif" src="" />
+
+    <script>
+        // 单词直接写这里，不用外部json，双击可直接打开
+const allWords = [
+{"en":"spacesuit","zh":"航天服，宇航服","err":"雨衣"},
+{"en":"collect","zh":"收集，采集","err":"丢弃"},
+{"en":"leave","zh":"离开","err":"留下"},
+{"en":"kilometer","zh":"千米，公里","err":"厘米"},
+{"en":"weak","zh":"虚弱的，无力的","err":"强壮的"},
+{"en":"tie","zh":"（用线，绳）拴","err":"解开"},
+{"en":"low","zh":"低于通常（或平均）数量（或水平，价值）的","err":"高于平均值"},
+{"en":"weigh","zh":"有...重，重","err":"测量长度"},
+{"en":"breathe","zh":"呼吸","err":"吞咽"},
+{"en":"facility","zh":"设施，设备","err":"垃圾"},
+{"en":"adventure","zh":"冒险，奇遇","err":"安稳度日"},
+{"en":"pass","zh":"沿某方向前进，向某方向移动","err":"静止不动"},
+{"en":"experiment","zh":"实验，试验","err":"演讲"},
+{"en":"prepare","zh":"准备","err":"放弃"},
+{"en":"dream","zh":"梦想，理想","err":"噩梦"},
+{"en":"chance","zh":"机会，机遇","err":"厄运"},
+{"en":"send","zh":"邮寄，发送","err":"接收"},
+{"en":"introduction","zh":"序言，引言","err":"后记"},
+{"en":"view","zh":"景色，风景","err":"噪音"},
+{"en":"someday","zh":"总有一天，有朝一日","err":"此刻"},
+{"en":"experience","zh":"经历，阅历","err":"幻想"},
+{"en":"lander","zh":"着陆器","err":"火箭"},
+{"en":"island","zh":"岛","err":"大陆"},
+{"en":"ancient","zh":"古老的","err":"现代的"},
+{"en":"poem","zh":"诗","err":"小说"},
+{"en":"express","zh":"表达","err":"隐藏"},
+{"en":"determination","zh":"决心","err":"犹豫"},
+{"en":"universe","zh":"宇宙","err":"原子"},
+{"en":"already","zh":"已经","err":"尚未"},
+{"en":"century","zh":"世纪","err":"分钟"},
+{"en":"neighbour","zh":"邻居","err":"陌生人"},
+{"en":"circle","zh":"环行","err":"直线移动"},
+{"en":"surface","zh":"表面，表层","err":"内部"},
+{"en":"release","zh":"放开，松开，使自由移动","err":"抓紧"},
+{"en":"kilogram","zh":"千克，公斤","err":"千米"},
+{"en":"programme","zh":"计划，方案","err":"意外"},
+{"en":"space station","zh":"空间站","err":"实验室"},
+{"en":"do exercise","zh":"锻炼，运动","err":"静坐"},
+{"en":"take photos","zh":"拍照","err":"录音"},
+{"en":"get into orbit","zh":"进入轨道","err":"坠落地面"},
+{"en":"thousands of","zh":"数以千计，成千上万","err":"寥寥数人"}
+];
+
+        let passedWords = [];
+        let gameWords = [];
+        let currentWord = null;
+        let startTime;
+        let timerInterval;
+        let successCount = 0; // 累计答对次数
+        let audioIndex = 0;    // 顺序索引 0=ok1,1=ok2,2=ok3
+        let gifIndex = 0; // 控制error1/2/3顺序
+
+        function initGame() {
+            // 读取已通关（浏览器本地存储，替代 passed.json）
+            passedWords = JSON.parse(localStorage.getItem("passed") || "[]");
+            gameWords = allWords.filter(w => !passedWords.includes(w.en));
+            startGame();
+        }
+
+        function startGame() {
+            updateInfo();
+            nextWord();
+            startTimer();
+        }
+
+        function nextWord() {
+            if(gameWords.length === 0) {
+                gameComplete();
+                return;
+            }
+            const i = Math.floor(Math.random() * gameWords.length);
+            currentWord = gameWords[i];
+            showWord();
+        }
+
+        function showWord() {
+            document.getElementById("enWord").textContent = currentWord.en;
+            const opts = [
+                {txt:currentWord.zh, right:true},
+                {txt:currentWord.err, right:false}
+            ].sort(()=>Math.random()-0.5);
+
+            const box = document.getElementById("optionBox");
+            box.innerHTML = "";
+            opts.forEach(o => {
+                const d = document.createElement("div");
+                d.className = "bubble";
+                d.style.background = getColor();
+                d.textContent = o.txt;
+                d.onclick = () => choose(o.right, d);
+                box.appendChild(d);
+            });
+        }
+
+        function choose(isRight, dom) {
+            if(isRight) {
+	successCount++;
+                 // 每3次随机播放ok1/ok2/ok3
+                 if (successCount % 3 === 0) {
+                     // 每3次按顺序播放
+            	    const list = ["ok1","ok2","ok3"];
+            	    const audio = document.getElementById(list[audioIndex]);
+            	    audio.currentTime = 0;
+            	    audio.play().catch(()=>{});
+            	    // 索引循环
+            	    audioIndex = (audioIndex + 1) % 3;
+                 } else {
+                     // 普通答对音效
+                     const okAudio = document.getElementById("okSound");
+                     okAudio.currentTime = 0;
+                     okAudio.play().catch(()=>{});
+                 }
+
+                // 答对：保存，移除题库
+                passedWords.push(currentWord.en);
+                localStorage.setItem("passed", JSON.stringify(passedWords));
+                gameWords = gameWords.filter(w => w.en !== currentWord.en);
+                setTimeout(nextWord, 400);
+            } else {
+                // 答错：动态创建GIF弹窗，强制居中、最高层级
+        	const gifList = ["error1.gif","error2.gif","error3.gif"];
+
+        	// 移除旧的
+        	let oldGif = document.getElementById("tempErrorGif");
+        	if(oldGif) oldGif.remove();
+
+        	// 新建
+        	let div = document.createElement("div");
+        	div.id = "tempErrorGif";
+        	div.style.cssText = `
+           	 	position:fixed;
+            		top:50%;left:50%;
+            		transform:translate(-50%,-50%);
+            		z-index:999999;
+            		width:220px;height:220px;
+            		background:url(${gifList[gifIndex]}) center/cover no-repeat;
+        	`;
+        	document.body.appendChild(div);
+
+       	 // 循环索引
+        	gifIndex = (gifIndex + 1) % 3;
+
+       	 // 1.5秒后消失
+        	setTimeout(()=>{
+            		div.remove();
+        	}, 1500);
+
+                // 答错：爆炸动画+音效，题目保留
+                dom.classList.add("boom");
+	document.getElementById("boomSound").currentTime = 0; // 重置到开头
+                document.getElementById("boomSound").play().catch(()=>{});
+                setTimeout(() => {
+                    dom.classList.remove("boom");
+                    nextWord();
+                }, 1500);
+            }
+            updateInfo();
+        }
+
+        function getColor() {
+            const cs = ['#4ecdc4','#45b7d1','#f093fb','#4facfe','#43e97b','#fa709a'];
+            return cs[Math.floor(Math.random()*cs.length)];
+        }
+
+        function updateInfo() {
+            document.getElementById("progress").textContent = gameWords.length;
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const s = Math.floor((Date.now()-startTime)/1000);
+                document.getElementById("timer").textContent = 
+                    String(Math.floor(s/60)).padStart(2,'0')+":"+String(s%60).padStart(2,'0');
+            },1000);
+        }
+
+        function gameComplete() {
+            clearInterval(timerInterval);
+            // 播放通关音效
+            document.getElementById("winSound").play().catch(()=>{});
+            document.getElementById("successModal").style.display = "flex";
+        }
+
+        function resetAll() {
+            localStorage.removeItem("passed");
+            location.reload();
+        }
+
+        window.onload = () => {
+            initGame();
+            // 背景音乐自动播放兼容
+            const bg = document.getElementById("bgMusic");
+            //bg.play().catch(()=>{
+             //   document.body.onclick = ()=>bg.play();
+            //});
+        };
+    </script>
+</body>
+</html>
